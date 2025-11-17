@@ -1,0 +1,120 @@
+::-webkit-scrollbar{
+  display:none;
+}
+/* *,
+::before,
+::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+label{
+  font-size: 20px;
+
+}
+
+html,
+body{
+  height: 100%;
+  width: 100%;
+}
+
+body{
+    dispay:flex;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    justify-items: center;
+    align-items: center;
+}
+
+.container{
+    background-color: rgb(160, 186, 205);
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 8px 8px 16px 0px rgba(66, 68, 90, 1);
+    max-width: 300px;
+    
+}
+
+.container h1{
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container form{
+  display: flex;
+  flex-direction: column;
+  gap :10px;
+}
+
+.container div{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.container input{
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 10px;
+}
+
+.container input::placeholder{
+    font-size: 14px;
+    font-style: italic;
+}
+
+button{
+  background-color: purple;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 2px;
+} */
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  width: 100%;
+}
+
+/* body {
+  display: flex;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  justify-items: center;
+  align-items: center;
+} */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+    min-height: 100%;
+  overflow-x: hidden;
+  display: block; /* ❗ important */
+}
+
+
+label {
+  font-size: 20px;
+}
+
+button {
+  background-color: purple;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 2px;
+}

@@ -1,0 +1,319 @@
+/* ===== GENERAL ===== */
+html, body, .landing-page {
+  height: auto;
+  min-height: 100%;
+  width: 100%;
+  background-color: #0c0c0c;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+   background: none !important;
+  background-color: #fff !important; /* or white */
+}
+/* ===== TRANSPARENT NAVBAR OVER HERO SLIDER ===== */
+.slider-nav {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 60px;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.25); /* light transparent backdrop */
+  padding: 10px 40px;
+  border-radius: 50px;
+  backdrop-filter: blur(6px);
+}
+
+.slider-nav .nav-link {
+  color: #fff;
+  font-size: 1.1rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.slider-nav .nav-link:hover {
+  color: #8f00ff;
+  transform: scale(1.05);
+}
+
+
+/* ===== HERO SLIDER ===== */
+.slider {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  overflow: hidden;
+  background: none;
+}
+
+
+.slider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  z-index: 0;
+}
+
+
+.slider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  filter: brightness(0.95);
+
+}
+.slider-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;  
+    backdrop-filter: none;
+ padding-top: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+
+.slider-overlay h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #141212;
+}
+
+.slider-overlay p {
+  font-size: 1.2rem;
+  margin-bottom: 20%;
+  color: #0b0808;
+}
+
+/* ===== WELCOME SECTION ===== */
+.welcome {
+  padding: 15px 40px;
+  text-align: center;
+  background: linear-gradient(90deg, #10001f, #0c0c0c);
+}
+
+.welcome h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #8f00ff;
+  text-shadow: 0 0 10px rgba(143, 0, 255, 0.5);
+}
+
+.welcome p {
+  max-width: 800px;
+  margin: 0 auto;
+  color: #ddd;
+  line-height: 1.7;
+}
+
+/* ===== AUTH BUTTONS (Login / Signup) ===== */
+.auth-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.auth-buttons button {
+  background: linear-gradient(90deg, #5468ff, #8f00ff);
+  border: none;
+  padding: 12px 24px;
+  color: white;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.auth-buttons button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(143, 0, 255, 0.5);
+}
+
+/* ===== SERVICES SECTION ===== */
+.services {
+  padding: 80px 20px;
+  text-align: center;
+  background: #111;
+}
+
+.services h2 {
+  color: #8f00ff;
+  margin-bottom: 30px;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+}
+
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 25px;
+  width: 260px;
+  box-shadow: 0 0 10px rgba(143, 0, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(143, 0, 255, 0.5);
+}
+
+/* ===== INSIGHTS SECTION ===== */
+.insights {
+  padding: 80px 20px;
+  background: radial-gradient(circle, #0f001f, #000);
+  text-align: center;
+}
+
+.insights h2 {
+  color: #8f00ff;
+  margin-bottom: 30px;
+}
+
+.insight-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+}
+
+.insight-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 20px;
+  width: 280px;
+  transition: 0.3s;
+}
+
+.insight-card:hover {
+  background: #252525;
+  box-shadow: 0 0 10px rgba(143, 0, 255, 0.3);
+}
+
+/* ===== ABOUT SECTION ===== */
+.about {
+  background: linear-gradient(90deg, #0c0c0c, #1a0033);
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 2rem;
+  color: #8f00ff;
+  margin-bottom: 15px;
+}
+
+.about p {
+  max-width: 700px;
+  margin: 0 auto 40px;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+/* ===== CONTACT SECTION ===== */
+.contact-section {
+  background: linear-gradient(90deg, #0c0c0c, #1a0033);
+  color: #fff;
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.contact-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.contact-left,
+.contact-right {
+  flex: 1;
+  min-width: 280px;
+  text-align: left;
+}
+
+.contact-left h2,
+.contact-right h2 {
+  color: #8f00ff;
+  margin-bottom: 15px;
+}
+
+.contact-left ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+.contact-left li {
+  margin-bottom: 10px;
+  color: #ddd;
+}
+
+.divider {
+  width: 2px;
+  background: rgba(143, 0, 255, 0.5);
+  align-self: stretch;
+}
+.social-icons {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.social-icons a {
+  color: #fff;
+  font-size: 1.5rem;
+  transition: 0.3s;
+}
+
+.social-icons a:hover {
+  color: #8f00ff;
+  transform: translateY(-3px);
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #8f00ff;
+  border-radius: 10px;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: #000;
+  color: #bbb;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+html, body, .landing-page {
+     height: auto; min-height: 100%; 
+     overflow-y: auto; 
+     scroll-behavior: smooth; 
+    
+}

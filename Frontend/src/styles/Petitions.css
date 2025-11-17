@@ -1,0 +1,270 @@
+/* === Petition Section Root === */
+.petition-section {
+  /* background-color: #0b0b0b; */
+  color: white;
+  font-family: "Poppins", sans-serif;
+  width:max-content;
+  /* overflow-y: auto; */
+  /* No margin-left, padding-top, or min-height here */
+  padding: 0; /* Let .dashboard-content provide major spacing */
+  border-radius: 10px;
+}
+
+/* === Petition Container (Card) === */
+.petition-container {
+  width: 100%;
+  /* background: #0b0b0b; */
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  box-shadow: 0 0 10px rgba(120, 120, 120, 0.3);
+  box-sizing: border-box;
+  margin: 0 auto; 
+  max-width: 1100px;
+}
+
+/* === Section Header === */
+.petition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+}
+
+.petition-header h2 {
+  font-size: 1.8rem;
+  background:  linear-gradient(90deg, #3b034e, #21003f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+}
+
+/* === Create Petition Button === */
+.create-btn {
+  background:  linear-gradient(135deg, #3b034e, #21003f);
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 1px 4px rgba(140, 82, 255, 0.22);
+}
+.create-btn:hover {
+  opacity: 0.90;
+  transform: scale(1.04);
+}
+
+/* === Petition Tabs === */
+.petition-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.petition-tabs button {
+  background: transparent;
+  border: 2px solid  #21003f;
+  color: #121010;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.petition-tabs button.active, .petition-tabs button:hover {
+  background:  linear-gradient(135deg, #3b034e, #21003f);
+  color: white;
+}
+
+/* === Petition Grid === */
+.petition-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* === Petition Cards === */
+.petition-card {
+  /* background: rgba(20, 20, 20, 0.98); */
+  border: 1px solid rgba(185, 178, 178, 0.812);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 0 14px rgba(59, 57, 57, 0.19);
+  transition: box-shadow 0.2s, transform 0.2s;
+  color: #111;
+  z-index: 0;
+}
+.petition-card:hover {
+  /* transform: translateY(-5px) scale(1.01); */
+  box-shadow: 0 0 20px rgba(65, 65, 65, 0.32);
+}
+.petition-card h3 {
+  margin-bottom: 0.5rem;
+  /* color: #fff; */
+}
+.petition-card p {
+  color: #aaa;
+  font-size: 0.93rem;
+  margin-bottom: 0.7rem;
+}
+.petition-category {
+  display: inline-block;
+  background: #8f00ff33;
+  border: 1px solid  #21003f;
+  color: #21003f;
+  padding: 0.22rem 0.7rem;
+  border-radius: 5px;
+  font-size: 0.83rem;
+}
+
+/* === Actions === */
+.petition-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.sign-btn,
+.view-btn {
+  flex: 1;
+  border: none;
+  padding: 0.5rem 0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.18s, background 0.18s;
+}
+.sign-btn {
+  background:  linear-gradient(135deg, #3b034e, #21003f);
+  color: white;
+  position: absolute;
+  bottom: 15px;
+    
+}
+/* .view-btn {
+  background: #111;
+  color: #ccc;
+  border: 1px solid #8f00ff;
+} */
+.sign-btn:hover,
+.view-btn:hover {
+  transform: scale(1.03);
+}
+
+/* === Modal === */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.80);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal {
+  background: #dcd9d9;
+  padding: 2rem 1rem;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 440px;
+  margin: 0 auto;
+  box-shadow: 0 0 22px rgba(42, 4, 74, 0.4);
+  text-align: center;
+}
+.modal h2 {
+  margin-bottom: 1rem;
+  background:  linear-gradient(135deg, #3b034e, #21003f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.modal form input,
+.modal form textarea {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #8f00ff66;
+  border-radius: 8px;
+  padding: 0.7rem;
+  color: rgb(13, 11, 11);
+  margin-bottom: 1rem;
+  outline: none;
+  font-size: 1rem;
+}
+.modal textarea {
+  height: 100px;
+  resize: none;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.submit-btn {
+  background:  linear-gradient(135deg, #3b034e, #21003f);
+  border: none;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+}
+.cancel-btn {
+  background: transparent;
+  border: 1px solid  #21003f;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  color:  #21003f;
+  font-weight: 600;
+}
+.cancel-btn:hover {
+  background: #8f00ff22;
+}
+
+/* edit delete close btns */
+.edit-btn { background: #ffc107; color: #fff; }
+.delete-btn { background: #dc3545; color: #fff; }
+.close-btn { background: #6c757d; color: #fff; }
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: not-allowed;
+}
+
+/* ===  Select Petitions=== */
+.petition-select {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #8f00ff66;
+  font-size: 15px;
+  background-color: #fff;
+}
+.petition-select:focus {
+  outline: none;
+  border-color: #4b0082;
+  box-shadow: 0 0 4px rgba(75, 0, 130, 0.4);
+}
+
+
+
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+  .petition-container {
+    padding: 1rem 0.2rem;
+  }
+}
+@media (max-width: 600px) {
+  .petition-container {
+    padding: 0.6rem 0;
+  }
+  .petition-list {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
+}
