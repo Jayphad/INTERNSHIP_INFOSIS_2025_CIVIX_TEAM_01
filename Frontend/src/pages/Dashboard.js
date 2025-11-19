@@ -63,13 +63,13 @@ const Dashboard = ({ user }) => {
     />
     );
     case "petitions":
-      return <PetitionsSection showCreateModal={showModal} setShowCreateModal={setShowModal} />;
+      return <PetitionsSection showCreateModal={showModal} setShowCreateModal={setShowModal} user={user}/>;
     case "polls":
-      return <PollsSection />;
+      return <PollsSection user={user}/>;
     case "reports":
-      return <ReportsSection />;
+      return <ReportsSection user={user}/>;
     case "community":
-      return <CommunitySection />;
+      return <CommunitySection user={user}/>;
     default:
       return <DashboardHome user={user} />;
   }

@@ -205,7 +205,7 @@ DashBOard HomePage
   background: #f3f4f6;
   /* padding: 8px; */
   border-radius: 8px;
-  color: #2563eb;
+  color: #3b034e;
 }
 
 /* ===== Content Cards ===== */
@@ -236,14 +236,14 @@ DashBOard HomePage
 .view-all-button {
   background: none;
   border: none;
-  color: #2563eb;
+  color: #3b034e;
   cursor: pointer;
   font-size: 14px;
   transition: color 0.2s ease;
 }
 
 .view-all-button:hover {
-  color: #1d4ed8;
+  color: #21003f;
 }
 
 /* ===== Petition & Activity Lists ===== */
@@ -285,11 +285,11 @@ DashBOard HomePage
 
 .progress-bar-fg {
   height: 6px;
-  background: #2563eb;
+  background: #3b034e;
 }
 
 .petition-list-item-button {
-  background: #2563eb;
+  background: #3b034e;
   border: none;
   color: white;
   padding: 6px 12px;
@@ -299,7 +299,7 @@ DashBOard HomePage
 }
 
 .petition-list-item-button:hover {
-  background: #1d4ed8;
+  background: #21003f;
 }
 
 /* ===== Activity Section ===== */
@@ -352,7 +352,7 @@ DashBOard HomePage
 }
 
 .form-button-primary {
-  background: #2563eb;
+  background: #3b034e;
   color: #fff;
 }
 
@@ -362,7 +362,7 @@ DashBOard HomePage
 }
 
 .form-button-primary:hover {
-  background: #1d4ed8;
+  background: #21003f;
 }
 
 .form-button-secondary:hover {
@@ -471,20 +471,3 @@ DashBOard HomePage
 .dashboard-content {
   padding-top: 80px; /* Ensures content is below header */
 }
-
-
-
-
-/* ===== NeoBar (Right Edge Glow) ===== */
-/* .neobar {
-  position: fixed;
-  right: 0;
-  top: 0;
-  height: 100vh;
-  width: 6px;
-  background: linear-gradient(to bottom, #a855f7, #7c3aed, #9333ea);
-  box-shadow: 0 0 10px #a855f7, 0 0 20px #7c3aed, 0 0 40px #9333ea;
-  border-radius: 10px;
-  z-index: 9999;
-}
- */

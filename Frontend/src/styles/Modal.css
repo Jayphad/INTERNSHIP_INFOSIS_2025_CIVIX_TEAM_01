@@ -1,0 +1,76 @@
+/* src/styles/Modal.css */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.7); /* bg-slate-900 bg-opacity-70 */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Aligns modal to the top */
+  padding: 4rem 1rem; /* p-16 md:p-16 */
+  z-index: 50;
+  overflow-y: auto;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.modal-content {
+  background-color: #f8f9fa; /* bg-slate-50 */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 42rem; /* max-w-2xl */
+  animation: modal-slide-in 0.3s ease-out;
+  border: 1px solid #e2e8f0; /* border-slate-200 */
+  padding: 10px 20px ;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a; /* text-slate-900 */
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #64748b; /* text-slate-500 */
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close-button:hover {
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  /* Make the form inside scrollable if content is too long */
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Animations */
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

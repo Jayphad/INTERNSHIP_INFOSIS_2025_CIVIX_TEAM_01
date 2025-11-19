@@ -3,24 +3,23 @@ import DashboardHeader from "../pages/DashboardHeader";
 import DashboardSidebar from "../pages/DashboardSidebar";
 import AdminHome from "./sections/AdminHome";
 import ReviewPetitions from "./sections/AdminPetitionsSection";
-
-// import "./AdminDashboard.css";
+import AdminPollsSection from "./sections/AdminPollsSection"; // Import the new section
 
 import {
   FileText,
-  Flag,
-  Users,
+  BarChart2,
   Settings,
   LayoutDashboard,
 } from "../assets/icons";
+
+// import "../styles/AdminPolls.css";
 
 const AdminDashboard = ({ user }) => {
   // ✅ Define admin-specific sidebar options
   const navItems = [
     { id: "home", label: "Dashboard", icon: LayoutDashboard },
-    { id: "review", label: "Petition Review", icon: FileText },
-    // { id: "officials", label: "Manage Officials", icon: Users },
-    // { id: "reports", label: "Reports", icon: Flag },
+    { id: "review", label: "Manage Petitions", icon: FileText },
+    { id: "polls", label: "Manage Polls", icon: BarChart2 }, // Added Polls
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -41,12 +40,10 @@ const AdminDashboard = ({ user }) => {
         return <AdminHome />;
       case "review":
         return <ReviewPetitions />;
-      case "officials":
-    //     return <ManageOfficials />;
-    //   case "reports":
-    //     return <AdminReports />;
-    //   case "settings":
-        // return <div>Settings Section</div>;
+      case "polls":
+        return <AdminPollsSection />; // Added Case
+      case "settings":
+         return <div className="dashboard-section-placeholder"><h3>Settings</h3><p>System configuration coming soon.</p></div>;
       default:
         return <AdminHome />;
     }
@@ -59,7 +56,6 @@ const AdminDashboard = ({ user }) => {
         isOpen={isSidebarOpen}
         setCurrentSection={setCurrentSection}
         currentSection={currentSection}
-      
       />
 
       <div className="dashboard-main" style={{ width: "100%" }}>

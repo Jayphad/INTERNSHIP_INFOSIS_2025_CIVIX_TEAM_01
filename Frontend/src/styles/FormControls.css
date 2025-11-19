@@ -50,15 +50,15 @@
   font-size: 1rem;
 }
 .form-button-primary {
-  background-color: #2563eb; /* bg-blue-600 */
+  background-color: #3b034e; /* bg-blue-600 */
   color: #ffffff; /* text-white */
 }
 .form-button-primary:hover {
-  background-color: #1d4ed8; /* hover:bg-blue-700 */
+  background-color: #21003f; /* hover:bg-blue-700 */
 }
 .form-button-primary:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb; /* focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 */
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #3b034e; /* focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 */
 }
 .form-button-secondary {
   background-color: #e5e7eb; /* bg-gray-200 */
