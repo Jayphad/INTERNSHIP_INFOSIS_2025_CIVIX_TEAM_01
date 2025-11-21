@@ -77,6 +77,27 @@ const mockPolls = [
     userVote: { "user_jay_456": "opt1" },
     closesOn: "2025-11-20",
     createdAt: "2023-10-25"
+  },
+  {
+    id: 2,
+    question: "What should be the priority for the new park?",
+    description: "The city has allocated a budget for a new park. What facilities are most important?",
+    options: [
+      { id: 'opt4', text: "Children's playground" },
+      { id: 'opt5', text: "Dog park" },
+      { id: 'opt6', text: "Community garden" },
+    ],
+    results: { 'opt4': 300, 'opt5': 150, 'opt6': 120 },
+    totalVotes: 570,
+     authorId: "user_jay_456",
+    authorName: "Jay Vijay",
+    location: "Delhi, India",
+    category: "community",
+    status: "active",
+    votedBy: ["user_jay_456"],
+    userVote: { "user_jay_456": "opt1" },
+    closesOn: "2025-11-20",
+    createdAt: "2023-10-25"
   }
 ];
 

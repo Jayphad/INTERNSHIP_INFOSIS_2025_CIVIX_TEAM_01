@@ -1,7 +1,6 @@
 
   .admin-petitions-container { padding: 1.5rem; font-family: sans-serif; color: #334155; }
-  .admin-header-row { display: flex;
-    flex-direction: column; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+  .admin-header-row { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
   .admin-page-title { font-size: 1.75rem; font-weight: 700; color: #1e293b; margin: 0; }
   .admin-page-subtitle { color: #64748b; margin: 0.25rem 0 0; }
   .admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }

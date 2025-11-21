@@ -82,9 +82,8 @@ const AdminPollsSection = () => {
       <div className="admin-header-row">
         <div>
           <h2 className="admin-page-title">Manage Community Polls</h2>
-          
+          <p className="admin-page-subtitle">Review community polls, moderate content, and track engagement.</p>
         </div>
-        <p className="admin-page-subtitle">Review community polls, moderate content, and track engagement.</p>
       </div>
 
       <div className="admin-stats-grid">
