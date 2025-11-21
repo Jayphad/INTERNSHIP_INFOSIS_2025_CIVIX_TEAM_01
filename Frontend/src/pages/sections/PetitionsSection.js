@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../../styles/Petitions.css";
-import { ToastContainer } from 'react-toastify';
-import { handleError, handleSuccess } from '../../utils';
+import { ToastContainer } from "react-toastify";
+import { handleError, handleSuccess } from "../../utils";
 const API_URL = "http://localhost:8080";
 
 const PetitionsSection = ({ user }) => {
   const [activeTab, setActiveTab] = useState("all");
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); 
+  const [showLocationModal, setShowLocationModal] = useState(false); 
+  const [selectedFullLocation, setSelectedFullLocation] = useState("");
   const [petitions, setPetitions] = useState([]);
   const [newPetition, setNewPetition] = useState({
     title: "",
@@ -19,17 +21,62 @@ const PetitionsSection = ({ user }) => {
 
   const loggedInUserId = localStorage.getItem("id");
 
-  // ✅ Fetch all petitions from backend
+  // Fetch all petitions
   const fetchPetitions = async () => {
     try {
       const res = await axios.get(`${API_URL}/petition/all`);
-      if (res.data.success) setPetitions(res.data.data);
+      if (res.data.success) {
+        const data = res.data.data || [];
+
+        const processed = await Promise.all(
+          data.map(async (p) => {
+            if (p.manualLocation && p.manualLocation.trim() !== "") {
+              return { ...p, _fullLocation: p.manualLocation };
+            }
+
+            if (
+              p.browserLocation &&
+              p.browserLocation.latitude &&
+              p.browserLocation.longitude
+            ) {
+              try {
+                const lat = p.browserLocation.latitude;
+                const lon = p.browserLocation.longitude;
+
+                const url = `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(
+                  lat
+                )}&lon=${encodeURIComponent(
+                  lon
+                )}&format=json&addressdetails=1&accept-language=en`;
+
+                const resp = await fetch(url, {
+                  headers: { "User-Agent": "Civix Petition Viewer" },
+                });
+
+                if (resp.ok) {
+                  const json = await resp.json();
+                  const display = json.display_name || "";
+                  return { ...p, _fullLocation: display };
+                }
+              } catch (e) {}
+
+              return {
+                ...p,
+                _fullLocation: `${p.browserLocation.latitude}, ${p.browserLocation.longitude}`,
+              };
+            }
+
+            return { ...p, _fullLocation: "" };
+          })
+        );
+
+        setPetitions(processed);
+      }
     } catch (err) {
-      console.error("Error fetching petitions:", err);
+      console.error("Error fetching:", err);
     }
   };
 
-  // ✅ Open Create Petition modal automatically if triggered from Dashboard
   useEffect(() => {
     const fromDashboard = localStorage.getItem("openCreatePetition");
     if (fromDashboard === "true") {
@@ -39,10 +86,9 @@ const PetitionsSection = ({ user }) => {
     fetchPetitions();
   }, []);
 
-  // ✅ Detect browser location
+  // Detect browser location
   const detectLocation = async () => {
     if (!navigator.geolocation) {
-      // alert("❌ Geolocation is not supported by your browser.");
       handleError("Geolocation is not supported by your browser");
       return;
     }
@@ -62,10 +108,8 @@ const PetitionsSection = ({ user }) => {
             manualLocation: address,
             browserLocation: { latitude, longitude },
           }));
-          // alert("✅ Location detected successfully!");
           handleSuccess("Location detected successfully");
         } catch (error) {
-          console.error("Error fetching address:", error);
           setNewPetition((prev) => ({
             ...prev,
             manualLocation: `${latitude}, ${longitude}`,
@@ -73,18 +117,42 @@ const PetitionsSection = ({ user }) => {
           }));
         }
       },
-      (error) => {
-        console.error("Location error:", error);
-        // alert("❌ Unable to fetch your location. Please enter manually.");
-        handleError("Unable to fetch your location. Please enter manually.");
-      }
+      () => handleError("Unable to fetch your location.")
     );
   };
 
-  // ✅ Create or update petition
+  // Extract short location
+  const extractShortAddress = (fullAddress) => {
+    if (!fullAddress || fullAddress.trim() === "") return "Location not specified";
+
+    const parts = fullAddress.split(",").map((s) => s.trim()).filter(Boolean);
+    const tail = [...parts].reverse();
+    const filtered = tail.filter((t) => !/^\d{4,}$/.test(t));
+
+    const pick = filtered.slice(0, 4).reverse();
+
+    const commonCountries = ["india", "united states", "usa", "uk"];
+    while (pick.length && commonCountries.includes(pick[pick.length - 1].toLowerCase())) {
+      pick.pop();
+    }
+
+    const chosen = pick.slice(Math.max(0, pick.length - 3));
+
+    const short = chosen.join(", ");
+    const hasMore = fullAddress.length > short.length + 10;
+
+    return hasMore ? `${short} ` : short; // space added for dots
+  };
+
+  // Open modal
+  const openLocationModal = (fullLocation) => {
+    setSelectedFullLocation(fullLocation || "Location not specified");
+    setShowLocationModal(true);
+  };
+
+  // Create or Update
   const handleCreatePetition = async (e) => {
     e.preventDefault();
-
     if (!newPetition.title || !newPetition.description) {
       alert("Please fill all fields");
       return;
@@ -92,7 +160,6 @@ const PetitionsSection = ({ user }) => {
 
     try {
       if (newPetition._id) {
-        // Update petition
         const res = await axios.put(
           `${API_URL}/petition/${newPetition._id}/update`,
           {
@@ -103,23 +170,13 @@ const PetitionsSection = ({ user }) => {
             userId: loggedInUserId,
           }
         );
+
         if (res.data.success) {
-          // alert("✅ Petition updated successfully!");
           handleSuccess("Petition updated successfully!");
-          setPetitions((prev) =>
-            prev.map((p) => (p._id === newPetition._id ? res.data.data : p))
-          );
+          fetchPetitions();
           setShowModal(false);
-          setNewPetition({
-            title: "",
-            description: "",
-            category: "",
-            manualLocation: "",
-            browserLocation: { latitude: null, longitude: null },
-          });
         }
       } else {
-        // Create new petition
         const res = await axios.post(`${API_URL}/petition/create`, {
           title: newPetition.title,
           description: newPetition.description,
@@ -130,102 +187,74 @@ const PetitionsSection = ({ user }) => {
         });
 
         if (res.data.success) {
-          // alert("✅ Petition created successfully!");
           handleSuccess("Petition created successfully!");
-          setPetitions([res.data.data, ...petitions]);
+          fetchPetitions();
           setShowModal(false);
-          setNewPetition({
-            title: "",
-            description: "",
-            category: "",
-            manualLocation: "",
-          });
-        } else {
-          alert(res.data.message);
         }
       }
     } catch (err) {
-      console.error("Error creating/updating petition:", err);
-      // alert("❌ Failed to create or update petition.");
-      handleError("Failed to create or update petition.");
+      handleError("Failed to create/update petition");
     }
   };
 
-  // ✅ Sign petition
+  // Sign
   const handleSignPetition = async (id) => {
     try {
       const res = await axios.post(`${API_URL}/petition/${id}/sign`, {
         userId: loggedInUserId || "guest",
         name: user?.name || "Anonymous",
       });
+
       if (res.data.success) {
-        // alert("✅ Petition signed successfully!");
-        handleSuccess("Petition signed successfully!");
-        setPetitions((prev) =>
-          prev.map((p) => (p._id === id ? res.data.data : p))
-        );
-      } else {
-        alert(res.data.message);
+        handleSuccess("Petition signed!");
+        fetchPetitions();
       }
-    } catch (err) {
-      console.error("Error signing petition:", err);
-    }
+    } catch {}
   };
 
-  // ✅ Delete petition
+  // Delete
   const handleDeletePetition = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this petition?"))
-      return;
+    if (!window.confirm("Delete this petition?")) return;
 
     try {
       const res = await axios.post(`${API_URL}/petition/${id}/delete`, {
         userId: loggedInUserId,
       });
       if (res.data.success) {
-        // alert("✅ Petition deleted successfully!");
-        handleSuccess("Petition deleted successfully!");
-        setPetitions(petitions.filter((p) => p._id !== id));
-      } else alert(res.data.message);
-    } catch (err) {
-      console.error("Error deleting petition:", err);
-    }
-  };
-
-  // ✅ Close petition
-  const handleClosePetition = async (petitionId) => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/petition/${petitionId}/close`,
-        { userId: loggedInUserId }
-      );
-      if (response.data.success) {
-        // alert("✅ Petition closed successfully!");
-        handleSuccess("Petition closed successfully!");
+        handleSuccess("Deleted");
         fetchPetitions();
-      } else {
-        alert(response.data.message || "Failed to close petition.");
       }
-    } catch (err) {
-      console.error("Error closing petition:", err);
-      // alert("❌ Error closing petition.");
-      handleError("Error closing petition");
-    }
+    } catch {}
   };
 
-  // ✅ Edit petition
-  const handleEditPetition = (petition) => {
+  // Close petition
+  const handleClosePetition = async (id) => {
+    try {
+      const res = await axios.post(`${API_URL}/petition/${id}/close`, {
+        userId: loggedInUserId,
+      });
+
+      if (res.data.success) {
+        handleSuccess("Petition closed!");
+        fetchPetitions();
+      }
+    } catch {}
+  };
+
+  // Edit
+  const handleEditPetition = (p) => {
     setNewPetition({
-      _id: petition._id,
-      title: petition.title,
-      description: petition.description,
-      category: petition.category,
-      manualLocation: petition.manualLocation,
-      browserLocation: petition.browserLocation,
+      _id: p._id,
+      title: p.title,
+      description: p.description,
+      category: p.category,
+      manualLocation: p.manualLocation,
+      browserLocation: p.browserLocation,
     });
     setShowModal(true);
   };
 
-  // ✅ Filter petitions
+  // Filter
   const filteredPetitions = petitions.filter((p) => {
     if (activeTab === "mine") return p.createdBy === loggedInUserId;
     if (activeTab === "signed")
@@ -234,16 +263,18 @@ const PetitionsSection = ({ user }) => {
   });
 
   return (
-    <div className="petition-section" style={{ width: "100%" }}>
+    <div className="petition-section">
       <div className="petition-container">
-        <div className="petition-header" style={{ color: "#21003f" }}>
+        
+        {/* HEADER */}
+        <div className="petition-header">
           <h2>Citizen Petitions</h2>
           <button className="create-btn" onClick={() => setShowModal(true)}>
             + Create Petition
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* TABS */}
         <div className="petition-tabs">
           {["all", "mine", "signed"].map((tab) => (
             <button
@@ -251,187 +282,216 @@ const PetitionsSection = ({ user }) => {
               className={activeTab === tab ? "active" : ""}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === "all"
-                ? "All Petitions"
-                : tab === "mine"
-                  ? "My Petitions"
-                  : "Signed Petitions"}
+              {tab === "all" ? "All Petitions" : tab === "mine" ? "My Petitions" : "Signed Petitions"}
             </button>
           ))}
         </div>
 
-        {/* Petition List */}
+        {/* PETITION CARDS */}
         <div className="petition-list">
-          {filteredPetitions.length > 0 ? (
-            filteredPetitions.map((p) => {
-              const alreadySigned = p.signatures.some(
-                (s) => s.userId === loggedInUserId
-              );
+          {filteredPetitions.map((p) => {
+            const fullLoc =
+              p.manualLocation && p.manualLocation.trim() !== ""
+                ? p.manualLocation
+                : p._fullLocation || "";
 
-              return (
-                <div key={p._id} className="petition-card" style={{position:"relative"}}>
-                  <h3>{p.title}</h3>
-                  <p style={{position:"absolute", top:"10px", right:"10px", padding:"3px 7px", borderRadius:"7px", backgroundColor:"#ebebebff", fontSize:"11px",fontWeight:"normal"}}>
-                    <strong style={{ color: p.status === "approved" ? "green" : "orange" }}>
-                      {p.status || "pending"}
-                    </strong>
-                  </p>
+            const shortLoc = extractShortAddress(fullLoc);
 
-                  <p>{p.description}</p>
-                  <span className="petition-category">{p.category}</span>
-                  <p className="petition-location">
-                    📍{" "}
-                    {p.manualLocation
-                      ? p.manualLocation
-                      : p.browserLocation?.latitude && p.browserLocation?.longitude
-                        ? `${p.browserLocation.latitude.toFixed(
-                          3
-                        )}, ${p.browserLocation.longitude.toFixed(3)}`
-                        : "Location not specified"}
-                  </p>
-                  <div className="petition-meta">
-                    <p className="signature-count">
-                      ✍️ {p.signatures.length}{" "}
-                      {p.signatures.length === 1 ? "Signature" : "Signatures"}
-                    </p>
-                  </div>
+            return (
+              <div key={p._id} className="petition-card">
+                
+                {/* STATUS */}
+                <span
+                  className={`status-badge ${
+                    p.status === "approved"
+                      ? "status-approved"
+                      : p.isClosed
+                      ? "status-closed"
+                      : "status-pending"
+                  }`}
+                >
+                  {p.status || "pending"}
+                </span>
 
-                  <div className="petition-actions">
-                    {p.isClosed ? (
-                      <button className="btn btn-secondary" disabled>
-                        🔒 Closed
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          className="sign-btn"
-                          disabled={alreadySigned}
-                          onClick={() =>
-                            !alreadySigned && handleSignPetition(p._id)
-                          }
-                          style={{
-                            backgroundColor: alreadySigned
-                              ? "#4CAF50"
-                              : "#007bff",
-                            cursor: alreadySigned ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {alreadySigned ? "Signed ✅" : "Sign"}
-                        </button>
+                {/* CATEGORY */}
+                <span className="petition-category">{p.category}</span>
 
-                        {activeTab === "mine" && (
-                          <>
-                            <button
-                              className="edit-btn"
-                              onClick={() => handleEditPetition(p)}
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              className="delete-btn"
-                              onClick={() => handleDeletePetition(p._id)}
-                            >
-                              ❌ Delete
-                            </button>
-                            <button
-                              className="close-btn"
-                              onClick={() => handleClosePetition(p._id)}
-                            >
-                              🔒 Close Petition
-                            </button>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p>No petitions found.</p>
-          )}
+                {/* TITLE */}
+                <h3 className="petition-title">{p.title}</h3>
+
+                {/* DESCRIPTION */}
+                <p className="petition-desc">{p.description}</p>
+
+                {/* LOCATION */}
+                <p className="petition-location">
+                  📍 {shortLoc}
+                  {fullLoc.length > shortLoc.length && (
+                    <span
+                      className="view-full-dots"
+                      onClick={() => openLocationModal(fullLoc)}
+                    >
+                      ……
+                    </span>
+                  )}
+                </p>
+
+                {/* SIGNATURE COUNT */}
+                <p className="signature-count">
+                  ✍️ {p.signatures.length}{" "}
+                  {p.signatures.length === 1 ? "Signature" : "Signatures"}
+                </p>
+
+                {/* ACTION BUTTONS */}
+               <div className="petition-actions">
+
+  {/* If CLOSED → Show Closed Badge for ALL tabs */}
+  {p.isClosed && (
+    <button className="btn-secondary" disabled>
+      Closed
+    </button>
+  )}
+
+  {/* If NOT CLOSED → Show SIGN button */}
+  {!p.isClosed && (
+    <button
+      className="sign-btn"
+      disabled={p.signatures.some((s) => s.userId === loggedInUserId)}
+      onClick={() =>
+        !p.signatures.some((s) => s.userId === loggedInUserId) &&
+        handleSignPetition(p._id)
+      }
+    >
+      {p.signatures.some((s) => s.userId === loggedInUserId)
+        ? "Signed"
+        : "Sign"}
+    </button>
+  )}
+
+  {/* Owner actions → only visible in My Petitions */}
+  {activeTab === "mine" && (
+    <div className="owner-actions">
+      {!p.isClosed && (
+        <>
+          <button className="edit-btn" onClick={() => handleEditPetition(p)}>
+            Edit
+          </button>
+          <button className="delete-btn" onClick={() => handleDeletePetition(p._id)}>
+            Delete
+          </button>
+          <button className="close-btn" onClick={() => handleClosePetition(p._id)}>
+            Close
+          </button>
+        </>
+      )}
+    </div>
+  )}
+</div>
+
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* ✅ Create/Edit Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>{newPetition._id ? "Edit Petition" : "Create New Petition"}</h2>
-            <form onSubmit={handleCreatePetition}>
-              <input
-                type="text"
-                placeholder="Petition Title"
-                value={newPetition.title}
-                onChange={(e) =>
-                  setNewPetition({ ...newPetition, title: e.target.value })
-                }
-              />
-              <textarea
-                placeholder="Describe your petition..."
-                value={newPetition.description}
-                onChange={(e) =>
-                  setNewPetition({
-                    ...newPetition,
-                    description: e.target.value,
-                  })
-                }
-              ></textarea>
-
-              <select
-                value={newPetition.category}
-                onChange={(e) =>
-                  setNewPetition({ ...newPetition, category: e.target.value })
-                }
-                className="petition-select"
-                required
-              >
-                <option value="">-- Select Category --</option>
-                <option value="Environment">Environment</option>
-                <option value="Infrastructure">Infrastructure</option>
-                <option value="Education">Education</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Public Safety">Public Safety</option>
-                <option value="Miscellaneous">Miscellaneous</option>
-              </select>
-
-              <input
-                type="text"
-                placeholder="Enter your location"
-                value={newPetition.manualLocation}
-                onChange={(e) =>
-                  setNewPetition({
-                    ...newPetition,
-                    manualLocation: e.target.value,
-                  })
-                }
-              />
-
-              <button
-                type="button"
-                className="detect-btn"
-                onClick={detectLocation}
-              >
-                📍 Detect My Location
+      {/* FULL LOCATION MODAL */}
+      {showLocationModal && (
+        <div className="modal-overlay" onClick={() => setShowLocationModal(false)}>
+          <div
+            className="modal"
+            style={{ maxWidth: 640 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Full Location</h2>
+            <p style={{ textAlign: "left", color: "#333", lineHeight: 1.5 }}>
+              {selectedFullLocation}
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button className="cancel-btn" onClick={() => setShowLocationModal(false)}>
+                Close
               </button>
-
-              <div className="modal-buttons">
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="submit-btn">
-                  {newPetition._id ? "Update Petition" : "Create Petition"}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
-        <ToastContainer />
+
+      {/* ✅ Create/Edit Modal */}
+{showModal && (
+  <div className="modal-overlay" onClick={() => setShowModal(false)}>
+    <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <h2>{newPetition._id ? "Edit Petition" : "Create New Petition"}</h2>
+
+      <form onSubmit={handleCreatePetition}>
+        <input
+          type="text"
+          placeholder="Petition Title"
+          value={newPetition.title}
+          onChange={(e) =>
+            setNewPetition({ ...newPetition, title: e.target.value })
+          }
+        />
+
+        <textarea
+          placeholder="Describe your petition..."
+          value={newPetition.description}
+          onChange={(e) =>
+            setNewPetition({ ...newPetition, description: e.target.value })
+          }
+        ></textarea>
+
+        <select
+          className="petition-select"
+          value={newPetition.category}
+          onChange={(e) =>
+            setNewPetition({ ...newPetition, category: e.target.value })
+          }
+          required
+        >
+          <option value="">-- Select Category --</option>
+          <option value="Environment">Environment</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Education">Education</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Public Safety">Public Safety</option>
+          <option value="Miscellaneous">Miscellaneous</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Enter your location"
+          value={newPetition.manualLocation}
+          onChange={(e) =>
+            setNewPetition({ ...newPetition, manualLocation: e.target.value })
+          }
+        />
+
+        <button
+          type="button"
+          className="detect-btn"
+          onClick={detectLocation}
+        >
+          📍 Detect My Location
+        </button>
+
+        <div className="modal-buttons">
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => setShowModal(false)}
+          >
+            Cancel
+          </button>
+
+          <button type="submit" className="submit-btn">
+            {newPetition._id ? "Update Petition" : "Create Petition"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+
+      <ToastContainer />
     </div>
   );
 };
