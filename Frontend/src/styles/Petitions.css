@@ -1,41 +1,144 @@
+  .petition-section { font-family: 'Inter', sans-serif; color: #334155; background-color: #f8fafc; min-height: 100vh; }
+  .petition-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+  
+  /* Header */
+  .petition-header { margin-bottom: 2rem; display: flex; text-align: left; align-items: center; gap: 1rem; justify-content: space-between;}
+  .page-title { font-size: 1.75rem; font-weight: 700; color: #1e293b; margin: 0; }
+  .page-subtitle { color: #64748b; margin-top: 0.25rem; font-size: 0.95rem; }
 
-  .petition-section { font-family: sans-serif; color: #334155; }
-  .petition-container { padding: 0 1rem; }
-  .petition-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-  .create-btn { background: #3b034e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-weight: 500; }
+  /* Toolbar (Tabs + Filters) */
+  .petition-toolbar { 
+    display: flex; 
+    justify-content: space-between; 
+    /* align-items: center; 
+    background: white;  */
+    padding: 0.75rem 1rem; 
+    /* border-radius: 0.75rem;  */
+    border-bottom: 1px solid #e2e8f0; 
+    margin-bottom: 2rem; 
+    flex-wrap: wrap;
+    gap: 1rem;
+    /* box-shadow: 0 1px 2px rgba(0,0,0,0.05); */
+  }
+
+  .petition-tabs { display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.25rem; border-radius: 0.5rem; }
+  .petition-tab-btn { 
+    padding: 0.5rem 1rem; 
+    border: none; 
+    background: transparent; 
+    color: #64748b; 
+    font-size: 0.875rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    border-radius: 0.375rem; 
+    transition: all 0.2s;
+  }
+  .petition-tab-btn.active { background: #3b034e; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+  .filter-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  
+  .filter-dropdown-container { position: relative; }
+  .filter-btn { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    padding: 0.5rem 0.75rem; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 0.5rem; 
+    background: white; 
+    color: #475569; 
+    font-size: 0.875rem; 
+    font-weight: 500; 
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+  
+  .filter-select {
+    appearance: none;
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .create-btn { 
+    background: #3b034e; 
+    color: white; 
+    border: none; 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 0.5rem; 
+    font-weight: 600; 
+    font-size: 0.875rem;
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    margin-left: 1rem;
+  }
   .create-btn:hover { background: #21003f; }
-  
-  /* Filter Bar */
-  .petition-filter-bar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; background: white; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
-  .filter-group { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 150px; }
-  .filter-group label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-  .filter-group select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; background-color: #f8fafc; color: #334155; font-size: 0.875rem; width: 100%; cursor: pointer; }
 
-  .petition-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; }
-  .petition-tabs button { background: none; border: none; padding: 0.75rem 0; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; font-weight: 500; }
-  .petition-tabs button.active { color: #3b034e; border-bottom-color: #3b034e; }
+  /* Cards Grid */
+  .petition-list { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
   
-  .petition-list { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-  .petition-card { background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.5rem; position: relative; display: flex; flex-direction: column; }
-  .petition-card h3 { margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.125rem; }
-  .petition-card p { color: #475569; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
-  .petition-category { display: inline-block; background: #f1f5f9; color: #475569; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; margin-bottom: 0.5rem; }
-  .petition-location { font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 0.25rem; }
-  .petition-meta { margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-  .petition-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .petition-card { 
+    background: white; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 1rem; 
+    padding: 1.5rem; 
+    display: flex; 
+    flex-direction: column; 
+    transition: transform 0.2s, box-shadow 0.2s; 
+  }
+  .petition-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+
+  .card-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .category-badge { background: #f1f5f9; color: #475569; padding: 0.25rem 0.6rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+  .time-ago { font-size: 0.75rem; color: #94a3b8; }
+
+  .card-title { font-size: 1.125rem; font-weight: 700; color: #0f172a; margin: 0 0 0.5rem 0; line-height: 1.4; text-align: left; }
   
-  .sign-btn { flex: 1; padding: 0.5rem; border: none; border-radius: 0.375rem; color: white; cursor: pointer; font-weight: 500; text-align: center; }
-  .report-btn { background: none; color: #64748b; padding: 0.5rem; border-radius: 0.375rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .report-btn:hover { color: #ef4444; }
+  /* Meta Row Style */
+  .card-meta-row { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; }
+  .meta-item { display: flex; align-items: center; gap: 0.25rem; }
+
+  .card-desc { font-size: 0.9rem; color: #64748b; line-height: 1.5; margin-bottom: 1.5rem; text-align: left; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .progress-section { margin-bottom: 1.5rem; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; }
+  .progress-bar-bg { height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+  .progress-bar-fill { height: 100%;    background: linear-gradient(90deg, #3b034e, #818cf8); border-radius: 10px; transition: width 0.5s ease; }
+
+  .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: auto; }
+  .view-details-btn { color: #3b034e; font-size: 0.875rem; font-weight: 600; background: none; border: none; cursor: pointer; }
   
-  /* Modal */
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-  .modal { background: white; padding: 2rem; borderRadius: 0.5rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+  .action-btn-group { display: flex; gap: 0.5rem; }
+  .icon-action-btn { padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s; }
+  .icon-action-btn:hover { border-color: #cbd5e1; color: #0f172a; }
+  .icon-action-btn.delete:hover { border-color: #fca5a5; color: #ef4444; background: #fef2f2; }
+  .icon-action-btn.report:hover { border-color: #fdba74; color: #f97316; background: #fff7ed; }
+
+  /* Sign Button with Unsign capability */
+  .sign-btn { background: #f1f5f9; color: #475569; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; }
+  .sign-btn.active { background: #3b034e; color: white; }
+  .sign-btn.active:hover { background: #21003f; }
+  
+  /* Unsign State (Red on hover) */
+  .sign-btn.signed { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .sign-btn.signed:hover { background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; content: 'Unsign'; }
+
+  /* Modal & Form Styles */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: white; width: 650px; max-width: 95%; border-radius: 1rem; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; }
   .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .modal-header h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a; }
   .modal-close { background: none; border: none; cursor: pointer; color: #64748b; }
-  .modal form { display: flex; flex-direction: column; gap: 1rem; }
-  .modal input, .modal textarea, .modal select { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; width: 100%; }
-  .modal-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
-  .detect-btn { background: none; border: 1px dashed #3b034e; color: #3b034e; padding: 0.5rem; border-radius: 0.375rem; cursor: pointer; width: 100%; }
-  .submit-btn { background: #3b034e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; }
-  .cancel-btn { background: #e2e8f0; color: #334155; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155; font-size: 0.9rem; }
+  .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; transition: border-color 0.2s; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .modal-buttons { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+  .submit-btn { background: #3b034e; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+  .cancel-btn { background: white; color: #475569; border: 1px solid #cbd5e1; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; }
+  
+  .info-alert { display: flex; gap: 0.75rem; background: #fffbeb; border: 1px solid #fcd34d; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; color: #92400e; font-size: 0.875rem; }

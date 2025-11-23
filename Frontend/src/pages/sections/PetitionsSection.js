@@ -1,51 +1,79 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { Flag, X, MapPin, Filter, Check, AlertCircle } from "../../assets/icons"; 
+import { 
+    X, MapPin, Filter, Check, AlertCircle, Plus, 
+  Search, Calendar, Edit2, Trash2, ChevronDown 
+} from "../../assets/icons"; 
 import { ToastContainer, toast } from 'react-toastify'; 
 import "../../styles/Petitions.css";
 
 const API_URL = "http://localhost:8080";
 
+// --- Helper: Time Ago ---
+const timeAgo = (dateString) => {
+    if (!dateString) return "Just now";
+    const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return "Less than a minute ago";
+};
+
 const PetitionsSection = ({ user }) => {
   const [activeTab, setActiveTab] = useState("all");
   const [showModal, setShowModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [selectedPetitionId, setSelectedPetitionId] = useState(null);
-  const [reportReason, setReportReason] = useState("Spam");
-  
-  // ✅ STATE: Initialize empty, wait for Backend
   const [petitions, setPetitions] = useState([]);
   const [error, setError] = useState(null);
 
+  // --- Report State ---
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedPetitionId, setSelectedPetitionId] = useState(null);
+  const [reportReason, setReportReason] = useState("Spam");
+
+  // --- Filters ---
   const [filters, setFilters] = useState({
     status: 'all',
     category: 'all',
     location: 'all'
   });
 
+  // --- Form State ---
   const [newPetition, setNewPetition] = useState({
+    id: null, // For editing
     title: "",
     description: "",
-    category: "",
-    manualLocation: "",
-    browserLocation: { latitude: null, longitude: null },
+    category: "Community",
+    location: "", 
+    goal: 100
   });
 
   const loggedInUserId = localStorage.getItem("id") || (user && (user.uid || user._id));
 
-  // ✅ Fetch Petitions from Backend
+  // ✅ Fetch Petitions
   const fetchPetitions = async () => {
     try {
       setError(null);
       const res = await axios.get(`${API_URL}/petition/all`);
       if (res.data.success) {
-        setPetitions(res.data.data);
-      } else {
-        setError("Failed to load petitions.");
+        // Process data
+        const formatted = res.data.data.map(p => ({
+            ...p,
+            signatures: Array.isArray(p.signatures) ? p.signatures : [],
+            goal: p.signatureGoal || 100,
+            status: p.status || 'review'
+        }));
+        setPetitions(formatted);
       }
     } catch (err) {
-      console.error("Backend Error:", err);
-      setError("Could not connect to the server. Please ensure the backend is running.");
+      console.error("Error fetching petitions:", err);
+      setError("Could not connect to server.");
     }
   };
 
@@ -53,349 +81,377 @@ const PetitionsSection = ({ user }) => {
     fetchPetitions();
   }, []);
 
-  // ✅ Extract Unique Locations
   const allLocations = useMemo(() => {
     const locs = petitions.map(p => p.manualLocation).filter(Boolean);
     return [...new Set(locs)];
   }, [petitions]);
 
-  // ✅ Handle Filter Changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Detect Browser Location
-  const detectLocation = async () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await response.json();
-          const address = data.display_name || `${latitude}, ${longitude}`;
-          setNewPetition(prev => ({ ...prev, manualLocation: address, browserLocation: { latitude, longitude } }));
-        } catch (error) {
-          setNewPetition(prev => ({ ...prev, manualLocation: `${latitude}, ${longitude}`, browserLocation: { latitude, longitude } }));
-        }
-      },
-      (error) => {
-        console.error(error);
-        alert("Unable to fetch location.");
-      }
-    );
-  };
-
-  // ✅ Create Petition (Backend Only)
-  const handleCreatePetition = async (e) => {
+  // ✅ Create or Update Petition
+  const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
-    if (!newPetition.title || !newPetition.description) {
-      alert("Please fill all fields");
-      return;
-    }
-
+    const isEdit = !!newPetition.id;
+    const endpoint = isEdit ? `${API_URL}/petition/${newPetition.id}/update` : `${API_URL}/petition/create`;
+    
     try {
-        const res = await axios.post(`${API_URL}/petition/create`, {
-          title: newPetition.title,
-          description: newPetition.description,
-          category: newPetition.category,
-          createdBy: loggedInUserId || "guest",
-          manualLocation: newPetition.manualLocation,
-          browserLocation: newPetition.browserLocation,
-        });
+        const payload = {
+            title: newPetition.title,
+            description: newPetition.description,
+            category: newPetition.category,
+            manualLocation: newPetition.location,
+            signatureGoal: newPetition.goal,
+            userId: loggedInUserId,
+            // For create only:
+            createdBy: loggedInUserId,
+            author: user?.name || "User",
+            status: "review"
+        };
+
+        const res = isEdit 
+            ? await axios.put(endpoint, payload)
+            : await axios.post(endpoint, payload);
 
         if (res.data.success) {
-          alert("Petition created successfully! It is now Under Review.");
-          setShowModal(false);
-          setNewPetition({ title: "", description: "", category: "", manualLocation: "", browserLocation: { latitude: null, longitude: null } });
-          fetchPetitions(); // Refresh list
+            alert(isEdit ? "Petition Updated!" : "Petition Created! Under Review.");
+            setShowModal(false);
+            setNewPetition({ id: null, title: "", description: "", category: "Community", location: "", goal: 100 });
+            fetchPetitions();
         } else {
-          alert(res.data.message);
+            alert(res.data.message);
         }
     } catch (err) {
-      console.error("Error creating petition:", err);
-      alert("Failed to create petition.");
+        console.error("Error submitting:", err);
+        alert("Failed to submit petition.");
     }
   };
 
-  // ✅ Sign Petition (Backend Only)
-  const handleSignPetition = async (id) => {
-    try {
-      const res = await axios.post(`${API_URL}/petition/${id}/sign`, {
-        userId: loggedInUserId || "guest",
-        name: user?.name || "Anonymous",
-      });
-      if (res.data.success) {
-        alert("Petition signed successfully!");
-        fetchPetitions(); // Refresh list
-      } else {
-        alert(res.data.message);
+  // ✅ Delete Own Petition
+  const handleDelete = async (id) => {
+      if(!window.confirm("Delete this petition? This cannot be undone.")) return;
+      try {
+          const res = await axios.post(`${API_URL}/petition/${id}/delete`, { userId: loggedInUserId });
+          if(res.data.success) {
+              alert("Petition deleted.");
+              fetchPetitions();
+          }
+      } catch(err) {
+          alert("Failed to delete petition.");
       }
-    } catch (err) {
-      console.error("Error signing petition:", err);
-      alert("Failed to sign petition.");
-    }
   };
 
-  // ✅ Open Report Modal
+  // ✅ Edit Helper
+  const openEditModal = (p) => {
+      setNewPetition({
+          id: p._id || p.id,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          location: p.manualLocation,
+          goal: p.goal || 100
+      });
+      setShowModal(true);
+  };
+
+  // ✅ Sign Petition
+  const handleSign = async (id) => {
+      try {
+          const res = await axios.post(`${API_URL}/petition/${id}/sign`, { userId: loggedInUserId, name: user?.name || "User" });
+          if(res.data.success) fetchPetitions();
+      } catch(e) { alert("Failed to sign."); }
+  };
+
+  // ✅ NEW: Unsign Petition (Remove Signature)
+  const handleUnsign = async (id) => {
+      if(!window.confirm("Are you sure you want to remove your signature?")) return;
+      try {
+          const res = await axios.post(`${API_URL}/petition/${id}/unsign`, { userId: loggedInUserId });
+          if(res.data.success) {
+              alert("Signature removed successfully.");
+              fetchPetitions();
+          } else {
+              alert(res.data.message || "Failed to unsign.");
+          }
+      } catch(e) { 
+          // Fallback if backend doesn't support unsign yet
+          alert("Failed to remove signature. Backend endpoint might be missing."); 
+      }
+  };
+
+  // ✅ Report Logic
   const openReportModal = (id) => {
     setSelectedPetitionId(id);
     setReportReason("Spam");
     setShowReportModal(true);
   };
 
-  // ✅ Submit Report (Backend Only)
   const handleSubmitReport = async () => {
     if (!selectedPetitionId) return;
-
     try {
         const res = await axios.post(`${API_URL}/petition/${selectedPetitionId}/report`, {
-            userId: loggedInUserId || "guest",
+            userId: loggedInUserId,
             reason: reportReason
         });
-        
         if (res.data.success || res.status === 200) {
             alert("Report submitted successfully.");
             setShowReportModal(false);
-            fetchPetitions(); // Refresh list
+            fetchPetitions(); 
         } else {
             alert("Failed to report petition.");
         }
     } catch (err) {
-        console.error("Error reporting petition:", err);
-        alert("Failed to submit report. Backend might be unreachable.");
+        alert("Failed to submit report.");
     }
   };
 
   // ✅ Filter Logic
   const filteredPetitions = petitions.filter((p) => {
-    // 1. Tab Logic
+    // 1. Tabs
     let tabMatch = true;
-    if (activeTab === "all") {
-        // Show all relevant petitions (Active, Closed, etc.)
-        tabMatch = true; 
-    } else if (activeTab === "mine") {
-        tabMatch = p.createdBy === loggedInUserId;
-    } else if (activeTab === "signed") {
-        const sigs = Array.isArray(p.signatures) ? p.signatures : [];
-        tabMatch = sigs.some((s) => s.userId === loggedInUserId);
-    }
-
-    // 2. Dropdown Filter Logic
+    if (activeTab === "mine") tabMatch = p.createdBy === loggedInUserId;
+    else if (activeTab === "signed") tabMatch = p.signatures.some(s => s.userId === loggedInUserId);
+    
+    // 2. Dropdowns
     const statusMatch = filters.status === 'all' || 
-                        (filters.status === 'active' && (p.status === 'active' || p.status === 'approved')) ||
-                        (filters.status === 'review' && (p.status === 'review' || p.status === 'pending')) ||
-                        (filters.status === 'closed' && p.status === 'closed');
+        (filters.status === 'active' && (p.status === 'active' || p.status === 'approved')) ||
+        (filters.status === 'review' && (p.status === 'review' || p.status === 'pending')) ||
+        (filters.status === 'closed' && p.status === 'closed');
 
-    const categoryMatch = filters.category === 'all' || p.category === filters.category;
-    const locationMatch = filters.location === 'all' || p.manualLocation === filters.location;
+    const catMatch = filters.category === 'all' || p.category === filters.category;
+    const locMatch = filters.location === 'all' || p.manualLocation === filters.location;
 
-    return tabMatch && statusMatch && categoryMatch && locationMatch;
+    return tabMatch && statusMatch && catMatch && locMatch;
   });
 
   return (
-    <div className="petition-section dashboard-section-placeholder" style={{ width: "100%" }}>
+    <div className="petition-section">
       <div className="petition-container">
-        <div className="petition-header" style={{ color: "#21003f" }}>
-          <h2>Citizen Petitions</h2>
-          <button className="create-btn" onClick={() => setShowModal(true)}>
-            + Create Petition
-          </button>
-        </div>
+        
+        <div className="petition-header">
+            <div>
+                <h2 className="page-title">Citizen Petitions</h2>
+                <p className="page-subtitle">Browse, sign, and track petitions in your community.</p>
+            </div>
 
-        {/* Error Banner */}
-        {error && (
-            <div className="error-state">
-                <AlertCircle size={24} style={{margin:'0 auto 0.5rem', display:'block'}}/>
-                <strong>Connection Error</strong>
-                <p>{error}</p>
-                <button className="btn btn-secondary" onClick={fetchPetitions} style={{marginTop:'0.5rem'}}>Retry Connection</button>
-            </div>
-        )}
-
-        {/* ✅ Filters Section */}
-        <div className="petition-filter-bar">
-            <div className="filter-group">
-                <label>Status</label>
-                <select name="status" value={filters.status} onChange={handleFilterChange}>
-                    <option value="all">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="review">Under Review</option>
-                    <option value="closed">Closed</option>
-                </select>
-            </div>
-            <div className="filter-group">
-                <label>Category</label>
-                <select name="category" value={filters.category} onChange={handleFilterChange}>
-                    <option value="all">All Categories</option>
-                    <option value="Environment">Environment</option>
-                    <option value="Infrastructure">Infrastructure</option>
-                    <option value="Education">Education</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Public Safety">Public Safety</option>
-                    <option value="Community">Community</option>
-                </select>
-            </div>
-            <div className="filter-group">
-                <label>Location</label>
-                <select name="location" value={filters.location} onChange={handleFilterChange}>
-                    <option value="all">All Locations</option>
-                    {allLocations.map((loc, idx) => (
-                        <option key={idx} value={loc}>{loc}</option>
-                    ))}
-                </select>
-            </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="petition-tabs">
-          {["all", "mine", "signed"].map((tab) => (
-            <button
-              key={tab}
-              className={activeTab === tab ? "active" : ""}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "all" ? "All Petitions" : tab === "mine" ? "My Petitions" : "Signed Petitions"}
+            <button className="create-btn" onClick={() => {
+                setNewPetition({ id: null, title: "", description: "", category: "Community", location: "", goal: 100 });
+                setShowModal(true);
+              }}>
+                <Plus size={18}/> Create Petition
             </button>
-          ))}
         </div>
 
-        {/* Petition List */}
-        <div className="petition-list">
-          {filteredPetitions.length > 0 ? (
-            filteredPetitions.map((p) => {
-              const sigs = Array.isArray(p.signatures) ? p.signatures : [];
-              const alreadySigned = sigs.some((s) => s.userId === loggedInUserId);
-
-              return (
-                <div key={p._id || p.id} className="petition-card">
-                  <h3>{p.title}</h3>
-                  <p style={{position:"absolute", top:"10px", right:"10px", padding:"3px 7px", borderRadius:"7px", backgroundColor:"#ebebebff", fontSize:"11px",fontWeight:"normal"}}>
-                    <strong style={{ 
-                        color: (p.status === "active" || p.status === "approved") ? "green" : 
-                               (p.status === "closed") ? "gray" : "orange" 
-                    }}>
-                      {p.status === 'review' || p.status === 'pending' ? 'Under Review' : 
-                       p.status === 'approved' ? 'Active' : p.status}
-                    </strong>
-                  </p>
-
-                  <p>{p.description}</p>
-                  <span className="petition-category">{p.category}</span>
-                  <p className="petition-location">📍 {p.manualLocation || "Global"}</p>
-                  <div className="petition-meta">
-                    <p className="signature-count">✍️ {sigs.length} Signatures</p>
-                  </div>
-
-                  <div className="petition-actions">
-                    {p.status === 'closed' ? (
-                      <button className="btn btn-secondary" disabled>🔒 Closed</button>
-                    ) : (
-                      (p.status === 'active' || p.status === 'approved') ? (
-                        <>
-                            <button
-                            className="sign-btn"
-                            disabled={alreadySigned}
-                            onClick={() => handleSignPetition(p._id || p.id)}
-                            style={{
-                                backgroundColor: alreadySigned ? "#4CAF50" : "#007bff",
-                                cursor: alreadySigned ? "not-allowed" : "pointer",
-                            }}
-                            >
-                            {alreadySigned ? "Signed ✅" : "Sign"}
-                            </button>
-                            
-                            <button 
-                                className="report-btn" 
-                                title="Report this petition"
-                                onClick={() => openReportModal(p._id || p.id)}
-                            >
-                                <AlertCircle size={18} />
-                            </button>
-                        </>
-                      ) : (
-                          <button className="btn btn-secondary" disabled style={{width:'100%', fontSize:'0.8rem'}}>
-                            Waiting for Approval
-                          </button>
-                      )
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="no-results-placeholder" style={{gridColumn:'1/-1', textAlign:'center', padding:'3rem', color:'#94a3b8', border:'1px dashed #cbd5e1', borderRadius:'0.5rem'}}>
-                <p>No petitions found matching your criteria.</p>
+        {/* ✅ Toolbar: Tabs + Filters */}
+        <div className="petition-toolbar">
+            <div className="petition-tabs">
+                <button className={`petition-tab-btn ${activeTab==='all'?'active':''}`} onClick={()=>setActiveTab('all')}>All Petitions</button>
+                <button className={`petition-tab-btn ${activeTab==='mine'?'active':''}`} onClick={()=>setActiveTab('mine')}>My Petitions</button>
+                <button className={`petition-tab-btn ${activeTab==='signed'?'active':''}`} onClick={()=>setActiveTab('signed')}>Signed by Me</button>
             </div>
-          )}
+
+            <div className="filter-actions">
+                {/* Location Filter */}
+                <div className="filter-dropdown-container">
+                    <button className="filter-btn"><MapPin size={16}/> {filters.location === 'all' ? 'All Locations' : filters.location} <ChevronDown size={14}/></button>
+                    <select name="location" value={filters.location} onChange={handleFilterChange} className="filter-select">
+                        <option value="all">All Locations</option>
+                        {allLocations.map(l=><option key={l} value={l}>{l}</option>)}
+                    </select>
+                </div>
+
+                {/* Category Filter */}
+                <div className="filter-dropdown-container">
+                    <button className="filter-btn"><Filter size={16}/> {filters.category === 'all' ? 'All Categories' : filters.category} <ChevronDown size={14}/></button>
+                    <select name="category" value={filters.category} onChange={handleFilterChange} className="filter-select">
+                        <option value="all">All Categories</option>
+                        <option value="Environment">Environment</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Education">Education</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Community">Community</option>
+                    </select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="filter-dropdown-container">
+                    <button className="filter-btn">Status: {filters.status === 'all' ? 'All' : filters.status} <ChevronDown size={14}/></button>
+                    <select name="status" value={filters.status} onChange={handleFilterChange} className="filter-select">
+                        <option value="all">All</option>
+                        <option value="active">Active</option>
+                        <option value="review">Under Review</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+
+            </div>
         </div>
+
+        {/* ✅ Cards Grid */}
+        <div className="petition-list">
+            {filteredPetitions.map(p => {
+                const sigCount = p.signatures.length;
+                const goal = p.goal || 100;
+                const progress = Math.min((sigCount / goal) * 100, 100);
+                const isOwner = p.createdBy === loggedInUserId;
+                const isSigned = p.signatures.some(s => s.userId === loggedInUserId);
+                const isActive = p.status === 'active' || p.status === 'approved';
+
+                return (
+                    <div key={p._id || p.id} className="petition-card">
+                        <div className="card-header-row">
+                            <span className="category-badge">{p.category}</span>
+                            <span className="time-ago">{timeAgo(p.createdAt)}</span>
+                        </div>
+
+                        <h3 className="card-title">{p.title}</h3>
+                        
+                        {/* Meta Row with Author and Location */}
+                        <div className="card-meta-row">
+                            <span className="meta-item">By {p.author || "Anonymous"}</span>
+                            <span className="meta-item"><MapPin size={14}/> {p.manualLocation || "Global"}</span>
+                        </div>
+
+                        <p className="card-desc">{p.description}</p>
+
+                        <div className="progress-section">
+                            <div className="progress-info">
+                                <span>{sigCount} of {goal} signatures</span>
+                                <span className="progress-status" style={{color: p.status === 'pending' || p.status === 'review' ? '#fbbf24' : (isActive ? '#16a34a' : '#64748b')}}>
+                                    {p.status === 'pending' || p.status === 'review' ? 'Under Review' : (isActive ? 'Active' : 'Closed')}
+                                </span>
+                            </div>
+                            <div className="progress-bar-bg">
+                                <div className="progress-bar-fill" style={{width: `${progress}%`}}></div>
+                            </div>
+                        </div>
+
+                        <div className="card-footer">
+                            <button className="view-details-btn">View Details</button>
+                            
+                            <div className="action-btn-group">
+                                {/* Edit/Delete for Owner */}
+                                {isOwner && (
+                                    <>
+                                        <button className="icon-action-btn" title="Edit" onClick={() => openEditModal(p)}><Edit2 size={16}/></button>
+                                        <button className="icon-action-btn delete" title="Delete" onClick={() => handleDelete(p._id || p.id)}><Trash2 size={16}/></button>
+                                    </>
+                                )}
+
+                                {/* Report Button Restored */}
+                                <button className="icon-action-btn report" title="Report" onClick={() => openReportModal(p._id || p.id)}>
+                                    <AlertCircle size={16} />
+                                </button>
+
+                                {/* Sign/Unsign Button */}
+                                {isActive && (
+                                    <button 
+                                        className={`sign-btn ${isSigned ? 'signed' : 'active'}`} 
+                                        onClick={() => isSigned ? handleUnsign(p._id || p.id) : handleSign(p._id || p.id)}
+                                        title={isSigned ? "Click to Remove Signature" : "Sign Petition"}
+                                    >
+                                        {isSigned ? 'Signed (Remove)' : 'Sign Petition'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+
       </div>
 
-      {/* ✅ Create Petition Modal */}
+      {/* ✅ Create/Edit Modal (Matches Admin Design) */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-                <h2>Create New Petition</h2>
+                <h3>{newPetition.id ? 'Edit Petition' : 'Create a New Petition'}</h3>
                 <button className="modal-close" onClick={() => setShowModal(false)}><X size={24}/></button>
             </div>
-            <form onSubmit={handleCreatePetition}>
-              <input type="text" placeholder="Petition Title" value={newPetition.title} onChange={(e) => setNewPetition({ ...newPetition, title: e.target.value })} required />
-              <textarea placeholder="Describe your petition..." value={newPetition.description} onChange={(e) => setNewPetition({ ...newPetition, description: e.target.value })} required></textarea>
-              <select value={newPetition.category} onChange={(e) => setNewPetition({ ...newPetition, category: e.target.value })} className="petition-select" required>
-                <option value="">-- Select Category --</option>
-                <option value="Environment">Environment</option>
-                <option value="Infrastructure">Infrastructure</option>
-                <option value="Education">Education</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Public Safety">Public Safety</option>
-                <option value="Community">Community</option>
-              </select>
-              <input type="text" placeholder="Enter your location" value={newPetition.manualLocation} onChange={(e) => setNewPetition({ ...newPetition, manualLocation: e.target.value })} />
+            <form onSubmit={handleCreateOrUpdate}>
+              <div className="form-group">
+                <label>Petition Title</label>
+                <input required value={newPetition.title} onChange={(e) => setNewPetition({...newPetition, title: e.target.value})} placeholder="Give your petition a clear, specific title" />
+                <span className="form-helper">Choose a title that clearly states what change you want to see.</span>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                    <label>Category</label>
+                    <select value={newPetition.category} onChange={(e) => setNewPetition({...newPetition, category: e.target.value})}>
+                        <option>Community</option>
+                        <option>Infrastructure</option>
+                        <option>Education</option>
+                        <option>Healthcare</option>
+                        <option>Environment</option>
+                        <option>Public Safety</option>
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Location</label>
+                    <input placeholder="Select a Location" value={newPetition.location} onChange={(e) => setNewPetition({...newPetition, location: e.target.value})} />
+                    <span className="form-helper">The area this petition concerns.</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Signature Goal</label>
+                <input type="number" value={newPetition.goal} onChange={(e) => setNewPetition({...newPetition, goal: e.target.value})} />
+                <span className="form-helper">How many signatures are you aiming to collect?</span>
+              </div>
+
+              <div className="form-group">
+                <label>Description</label>
+                <textarea required rows="4" value={newPetition.description} onChange={(e) => setNewPetition({...newPetition, description: e.target.value})} placeholder="Describe the issue and the change you'd like to see..."></textarea>
+                <span className="form-helper">Clearly explain the issue, why it matters, and what specific action you're requesting.</span>
+              </div>
+
+              <div className="info-alert">
+                <AlertCircle size={20} />
+                <div>
+                    <strong>Important Information</strong>
+                    <p style={{margin:0}}>By submitting this petition, you acknowledge that the content is factual to the best of your knowledge and does not contain misleading information. Civix reserves the right to remove petitions that violate our community guidelines.</p>
+                </div>
+              </div>
+
               <div className="modal-buttons">
                 <button type="button" className="cancel-btn" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="submit-btn">Create Petition</button>
+                <button type="submit" className="submit-btn">{newPetition.id ? 'Update Petition' : 'Publish Petition'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ✅ Report Petition Modal */}
+      {/* ✅ Report Modal */}
       {showReportModal && (
         <div className="modal-overlay">
           <div className="modal" style={{maxWidth:'400px'}}>
             <div className="modal-header">
-                <h2>Report Petition</h2>
+                <h3>Report Petition</h3>
                 <button className="modal-close" onClick={() => setShowReportModal(false)}><X size={24}/></button>
             </div>
-            <div style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
-                <p style={{color:'#64748b', fontSize:'0.9rem'}}>Please select a reason for reporting this petition.</p>
-                <select 
-                    value={reportReason} 
-                    onChange={(e) => setReportReason(e.target.value)}
-                    style={{padding:'0.5rem', border:'1px solid #cbd5e1', borderRadius:'0.375rem'}}
-                >
+            <div className="form-group">
+                <label>Reason for Reporting</label>
+                <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
                     <option value="Spam">Spam or Misleading</option>
                     <option value="Harassment">Harassment or Hate Speech</option>
                     <option value="False Information">False Information</option>
                     <option value="Inappropriate">Inappropriate Content</option>
                     <option value="Other">Other</option>
                 </select>
-                <div className="modal-buttons">
-                    <button type="button" className="cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>
-                    <button type="button" className="submit-btn" style={{background:'#dc2626'}} onClick={handleSubmitReport}>Submit Report</button>
-                </div>
+            </div>
+            <div className="modal-buttons">
+                <button type="button" className="cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>
+                <button type="button" className="submit-btn" style={{background:'#dc2626'}} onClick={handleSubmitReport}>Submit Report</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Toast Container logic */}
     </div>
   );
 };
