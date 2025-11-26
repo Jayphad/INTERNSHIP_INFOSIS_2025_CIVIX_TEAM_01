@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { 
     X, MapPin, Filter, Check, AlertCircle, Plus, 
-  Search, Calendar, Edit2, Trash2, ChevronDown 
+    Search, Calendar, Edit2, Trash2, ChevronDown, Eye 
 } from "../../assets/icons"; 
 import { ToastContainer, toast } from 'react-toastify'; 
 import "../../styles/Petitions.css";
@@ -29,6 +29,7 @@ const timeAgo = (dateString) => {
 const PetitionsSection = ({ user }) => {
   const [activeTab, setActiveTab] = useState("all");
   const [showModal, setShowModal] = useState(false);
+  const [viewPetition, setViewPetition] = useState(null); // State for View Modal
   const [petitions, setPetitions] = useState([]);
   const [error, setError] = useState(null);
 
@@ -36,6 +37,8 @@ const PetitionsSection = ({ user }) => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedPetitionId, setSelectedPetitionId] = useState(null);
   const [reportReason, setReportReason] = useState("Spam");
+  // ✅ Added state for custom report reason
+  const [customReason, setCustomReason] = useState("");
 
   // --- Filters ---
   const [filters, setFilters] = useState({
@@ -62,11 +65,11 @@ const PetitionsSection = ({ user }) => {
       setError(null);
       const res = await axios.get(`${API_URL}/petition/all`);
       if (res.data.success) {
-        // Process data
+        // Process data to match UI needs
         const formatted = res.data.data.map(p => ({
             ...p,
             signatures: Array.isArray(p.signatures) ? p.signatures : [],
-            goal: p.signatureGoal || 100,
+            goal: p.signatureGoal || 100, // Ensure goal is grabbed correctly
             status: p.status || 'review'
         }));
         setPetitions(formatted);
@@ -97,18 +100,28 @@ const PetitionsSection = ({ user }) => {
     const isEdit = !!newPetition.id;
     const endpoint = isEdit ? `${API_URL}/petition/${newPetition.id}/update` : `${API_URL}/petition/create`;
     
+    // ✅ Optimistic update for UI feedback
+    if (isEdit) {
+       setPetitions(prev => prev.map(p => 
+           (p._id === newPetition.id || p.id === newPetition.id) 
+           ? { ...p, status: 'review', title: newPetition.title, description: newPetition.description } 
+           : p
+       ));
+    }
+
     try {
         const payload = {
             title: newPetition.title,
             description: newPetition.description,
             category: newPetition.category,
             manualLocation: newPetition.location,
-            signatureGoal: newPetition.goal,
+            signatureGoal: Number(newPetition.goal), // Ensure it sends as number
             userId: loggedInUserId,
             // For create only:
             createdBy: loggedInUserId,
             author: user?.name || "User",
-            status: "review"
+            // ✅ Requirement: Reset to 'review' on update
+            status: "review" 
         };
 
         const res = isEdit 
@@ -116,10 +129,10 @@ const PetitionsSection = ({ user }) => {
             : await axios.post(endpoint, payload);
 
         if (res.data.success) {
-            alert(isEdit ? "Petition Updated!" : "Petition Created! Under Review.");
+            alert(isEdit ? "Petition Updated! It is now under review." : "Petition Created! Under Review.");
             setShowModal(false);
             setNewPetition({ id: null, title: "", description: "", category: "Community", location: "", goal: 100 });
-            fetchPetitions();
+            fetchPetitions(); // Refetch to show updated goal/status immediately
         } else {
             alert(res.data.message);
         }
@@ -151,7 +164,7 @@ const PetitionsSection = ({ user }) => {
           description: p.description,
           category: p.category,
           location: p.manualLocation,
-          goal: p.goal || 100
+          goal: p.signatureGoal || p.goal || 100
       });
       setShowModal(true);
   };
@@ -164,7 +177,7 @@ const PetitionsSection = ({ user }) => {
       } catch(e) { alert("Failed to sign."); }
   };
 
-  // ✅ NEW: Unsign Petition (Remove Signature)
+  // ✅ Unsign Petition
   const handleUnsign = async (id) => {
       if(!window.confirm("Are you sure you want to remove your signature?")) return;
       try {
@@ -176,8 +189,7 @@ const PetitionsSection = ({ user }) => {
               alert(res.data.message || "Failed to unsign.");
           }
       } catch(e) { 
-          // Fallback if backend doesn't support unsign yet
-          alert("Failed to remove signature. Backend endpoint might be missing."); 
+          alert("Failed to remove signature."); 
       }
   };
 
@@ -185,15 +197,22 @@ const PetitionsSection = ({ user }) => {
   const openReportModal = (id) => {
     setSelectedPetitionId(id);
     setReportReason("Spam");
+    setCustomReason(""); // Reset custom reason
     setShowReportModal(true);
   };
 
   const handleSubmitReport = async () => {
     if (!selectedPetitionId) return;
+    
+    // ✅ Logic for custom reason
+    const finalReason = reportReason === "Other" 
+        ? (customReason.trim() ? `Other: ${customReason}` : "Other") 
+        : reportReason;
+
     try {
         const res = await axios.post(`${API_URL}/petition/${selectedPetitionId}/report`, {
             userId: loggedInUserId,
-            reason: reportReason
+            reason: finalReason
         });
         if (res.data.success || res.status === 200) {
             alert("Report submitted successfully.");
@@ -253,7 +272,6 @@ const PetitionsSection = ({ user }) => {
             </div>
 
             <div className="filter-actions">
-                {/* Location Filter */}
                 <div className="filter-dropdown-container">
                     <button className="filter-btn"><MapPin size={16}/> {filters.location === 'all' ? 'All Locations' : filters.location} <ChevronDown size={14}/></button>
                     <select name="location" value={filters.location} onChange={handleFilterChange} className="filter-select">
@@ -261,8 +279,6 @@ const PetitionsSection = ({ user }) => {
                         {allLocations.map(l=><option key={l} value={l}>{l}</option>)}
                     </select>
                 </div>
-
-                {/* Category Filter */}
                 <div className="filter-dropdown-container">
                     <button className="filter-btn"><Filter size={16}/> {filters.category === 'all' ? 'All Categories' : filters.category} <ChevronDown size={14}/></button>
                     <select name="category" value={filters.category} onChange={handleFilterChange} className="filter-select">
@@ -274,8 +290,6 @@ const PetitionsSection = ({ user }) => {
                         <option value="Community">Community</option>
                     </select>
                 </div>
-
-                {/* Status Filter */}
                 <div className="filter-dropdown-container">
                     <button className="filter-btn">Status: {filters.status === 'all' ? 'All' : filters.status} <ChevronDown size={14}/></button>
                     <select name="status" value={filters.status} onChange={handleFilterChange} className="filter-select">
@@ -285,7 +299,6 @@ const PetitionsSection = ({ user }) => {
                         <option value="closed">Closed</option>
                     </select>
                 </div>
-
             </div>
         </div>
 
@@ -298,6 +311,7 @@ const PetitionsSection = ({ user }) => {
                 const isOwner = p.createdBy === loggedInUserId;
                 const isSigned = p.signatures.some(s => s.userId === loggedInUserId);
                 const isActive = p.status === 'active' || p.status === 'approved';
+                const isClosed = p.status === 'closed';
 
                 return (
                     <div key={p._id || p.id} className="petition-card">
@@ -308,7 +322,6 @@ const PetitionsSection = ({ user }) => {
 
                         <h3 className="card-title">{p.title}</h3>
                         
-                        {/* Meta Row with Author and Location */}
                         <div className="card-meta-row">
                             <span className="meta-item">By {p.author || "Anonymous"}</span>
                             <span className="meta-item"><MapPin size={14}/> {p.manualLocation || "Global"}</span>
@@ -319,34 +332,46 @@ const PetitionsSection = ({ user }) => {
                         <div className="progress-section">
                             <div className="progress-info">
                                 <span>{sigCount} of {goal} signatures</span>
-                                <span className="progress-status" style={{color: p.status === 'pending' || p.status === 'review' ? '#fbbf24' : (isActive ? '#16a34a' : '#64748b')}}>
-                                    {p.status === 'pending' || p.status === 'review' ? 'Under Review' : (isActive ? 'Active' : 'Closed')}
+                                <span className="progress-status" style={{color: isClosed ? '#64748b' : (p.status === 'pending' || p.status === 'review' ? '#fbbf24' : '#16a34a')}}>
+                                    {isClosed ? 'Closed' : (p.status === 'pending' || p.status === 'review' ? 'Under Review' : 'Active')}
                                 </span>
                             </div>
                             <div className="progress-bar-bg">
-                                <div className="progress-bar-fill" style={{width: `${progress}%`}}></div>
+                                <div className="progress-bar-fill" style={{width: `${progress}%`, backgroundColor: isClosed ? '#cbd5e1' : '#2563eb'}}></div>
                             </div>
                         </div>
 
                         <div className="card-footer">
-                            <button className="view-details-btn">View Details</button>
+                            <button className="view-details-btn" onClick={() => setViewPetition(p)}>
+                                 {/* ✅ Eye Icon Button */}
+                                <button className="view" title="View Details" onClick={() => setViewPetition(p)}>
+                                    <Eye size={16}/>
+                                </button>
+                                View Details
+                            </button>
                             
                             <div className="action-btn-group">
-                                {/* Edit/Delete for Owner */}
+
+                                {/* Edit/Delete for Owner - ✅ Hide Edit if Closed */}
                                 {isOwner && (
                                     <>
-                                        <button className="icon-action-btn" title="Edit" onClick={() => openEditModal(p)}><Edit2 size={16}/></button>
-                                        <button className="icon-action-btn delete" title="Delete" onClick={() => handleDelete(p._id || p.id)}><Trash2 size={16}/></button>
+                                        {!isClosed && (
+                                            <button className="icon-action-btn" title="Edit" onClick={() => openEditModal(p)}>
+                                                <Edit2 size={16}/>
+                                            </button>
+                                        )}
+                                        <button className="icon-action-btn delete" title="Delete" onClick={() => handleDelete(p._id || p.id)}>
+                                            <Trash2 size={16}/>
+                                        </button>
                                     </>
                                 )}
 
-                                {/* Report Button Restored */}
                                 <button className="icon-action-btn report" title="Report" onClick={() => openReportModal(p._id || p.id)}>
                                     <AlertCircle size={16} />
                                 </button>
 
-                                {/* Sign/Unsign Button */}
-                                {isActive && (
+                                {/* Sign/Unsign Button - Hide if Closed */}
+                                {isActive && !isClosed && (
                                     <button 
                                         className={`sign-btn ${isSigned ? 'signed' : 'active'}`} 
                                         onClick={() => isSigned ? handleUnsign(p._id || p.id) : handleSign(p._id || p.id)}
@@ -355,16 +380,67 @@ const PetitionsSection = ({ user }) => {
                                         {isSigned ? 'Signed (Remove)' : 'Sign Petition'}
                                     </button>
                                 )}
+                                {isClosed && (
+                                    <button className="sign-btn" disabled style={{background: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed'}}>
+                                        Closed
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
                 );
             })}
         </div>
-
       </div>
 
-      {/* ✅ Create/Edit Modal (Matches Admin Design) */}
+      {/* ✅ View Details Modal */}
+      {viewPetition && (
+          <div className="modal-overlay">
+              <div className="modal">
+                  <div className="modal-header">
+                      <h3>Petition Details</h3>
+                      <button className="modal-close" onClick={() => setViewPetition(null)}><X size={24}/></button>
+                  </div>
+                  
+                  <div className="detail-row" style={{marginBottom: '1rem'}}>
+                      <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Title</span>
+                      <div className="detail-value" style={{fontWeight:700, fontSize:'1.1rem'}}>{viewPetition.title}</div>
+                  </div>
+                  <div className="detail-row" style={{marginBottom: '1rem'}}>
+                      <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Description</span>
+                      <div className="detail-value" style={{lineHeight:1.5}}>{viewPetition.description}</div>
+                  </div>
+
+                  <div className="form-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem', marginBottom:'1rem'}}>
+                      <div>
+                          <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Category</span>
+                          <div className="detail-value">{viewPetition.category}</div>
+                      </div>
+                      <div>
+                          <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Location</span>
+                          <div className="detail-value">{viewPetition.manualLocation || 'Global'}</div>
+                      </div>
+                  </div>
+
+                  <div className="form-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem', marginBottom:'1rem'}}>
+                       <div>
+                          <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Status</span>
+                          <div style={{textTransform:'capitalize', fontWeight:600, color: viewPetition.status==='active'?'#16a34a': viewPetition.status==='closed'?'#64748b':'#ea580c'}}>{viewPetition.status}</div>
+                       </div>
+                       <div>
+                          <span className="detail-label" style={{fontWeight:600, color:'#64748b', fontSize:'0.85rem'}}>Progress</span>
+                          <div>{viewPetition.signatures.length} / {viewPetition.goal || 100} Signatures</div>
+                       </div>
+                  </div>
+
+                  <div className="modal-buttons" style={{marginTop:'2rem', display:'flex', justifyContent:'flex-end'}}>
+                      <button className="submit-btn" onClick={() => setViewPetition(null)}>Close</button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* ✅ Create/Edit Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -394,7 +470,6 @@ const PetitionsSection = ({ user }) => {
                 <div className="form-group">
                     <label>Location</label>
                     <input placeholder="Select a Location" value={newPetition.location} onChange={(e) => setNewPetition({...newPetition, location: e.target.value})} />
-                    <span className="form-helper">The area this petition concerns.</span>
                 </div>
               </div>
 
@@ -407,14 +482,17 @@ const PetitionsSection = ({ user }) => {
               <div className="form-group">
                 <label>Description</label>
                 <textarea required rows="4" value={newPetition.description} onChange={(e) => setNewPetition({...newPetition, description: e.target.value})} placeholder="Describe the issue and the change you'd like to see..."></textarea>
-                <span className="form-helper">Clearly explain the issue, why it matters, and what specific action you're requesting.</span>
               </div>
 
               <div className="info-alert">
                 <AlertCircle size={20} />
                 <div>
                     <strong>Important Information</strong>
-                    <p style={{margin:0}}>By submitting this petition, you acknowledge that the content is factual to the best of your knowledge and does not contain misleading information. Civix reserves the right to remove petitions that violate our community guidelines.</p>
+                    <p style={{margin:0}}>
+                        {newPetition.id 
+                         ? "Updating this petition will reset its status to 'Under Review'. It must be re-approved by an admin."
+                         : "By submitting this petition, you acknowledge that the content is factual. Civix reserves the right to remove petitions."}
+                    </p>
                 </div>
               </div>
 
@@ -427,7 +505,7 @@ const PetitionsSection = ({ user }) => {
         </div>
       )}
 
-      {/* ✅ Report Modal */}
+      {/* Report Modal */}
       {showReportModal && (
         <div className="modal-overlay">
           <div className="modal" style={{maxWidth:'400px'}}>
@@ -444,6 +522,17 @@ const PetitionsSection = ({ user }) => {
                     <option value="Inappropriate">Inappropriate Content</option>
                     <option value="Other">Other</option>
                 </select>
+                
+                {/* ✅ Added Textarea for 'Other' reason */}
+                {reportReason === 'Other' && (
+                    <textarea 
+                        className="form-group" 
+                        style={{marginTop:'0.5rem', width:'100%', padding:'0.5rem', minHeight:'80px', fontSize:'0.9rem'}}
+                        placeholder="Please describe the issue..."
+                        value={customReason}
+                        onChange={(e) => setCustomReason(e.target.value)}
+                    />
+                )}
             </div>
             <div className="modal-buttons">
                 <button type="button" className="cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>

@@ -110,8 +110,9 @@
   .progress-bar-fill { height: 100%;    background: linear-gradient(90deg, #3b034e, #818cf8); border-radius: 10px; transition: width 0.5s ease; }
 
   .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: auto; }
-  .view-details-btn { color: #3b034e; font-size: 0.875rem; font-weight: 600; background: none; border: none; cursor: pointer; }
-  
+  .view-details-btn { color: #3b034e; font-size: 0.875rem; font-weight: 600; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; }
+  .view {color: #3b034e; background-color: transparent; border: none; padding: 0%; }
+
   .action-btn-group { display: flex; gap: 0.5rem; }
   .icon-action-btn { padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s; }
   .icon-action-btn:hover { border-color: #cbd5e1; color: #0f172a; }
