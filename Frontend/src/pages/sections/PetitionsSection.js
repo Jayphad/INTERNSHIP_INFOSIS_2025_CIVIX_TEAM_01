@@ -3,6 +3,17 @@ import axios from "axios";
 import "../../styles/Petitions.css";
 import { ToastContainer } from 'react-toastify';
 import { handleError, handleSuccess } from '../../utils';
+import {
+  FiMapPin,
+  FiInfo,
+  FiEdit,
+  FiTrash2,
+  FiLock,
+  FiPenTool,
+  FiCheckCircle,
+  FiCrosshair
+} from "react-icons/fi";
+
 const API_URL = "http://localhost:8080";
 
 const PetitionsSection = ({ user }) => {
@@ -16,6 +27,14 @@ const PetitionsSection = ({ user }) => {
     manualLocation: "",
     browserLocation: { latitude: null, longitude: null },
   });
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterLocation, setFilterLocation] = useState("all");
+
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState("");
+
+
 
   const loggedInUserId = localStorage.getItem("id");
 
@@ -44,6 +63,7 @@ const PetitionsSection = ({ user }) => {
     if (!navigator.geolocation) {
       // alert("❌ Geolocation is not supported by your browser.");
       handleError("Geolocation is not supported by your browser");
+
       return;
     }
 
@@ -226,39 +246,105 @@ const PetitionsSection = ({ user }) => {
   };
 
   // ✅ Filter petitions
-  const filteredPetitions = petitions.filter((p) => {
-    if (activeTab === "mine") return p.createdBy === loggedInUserId;
-    if (activeTab === "signed")
-      return p.signatures.some((s) => s.userId === loggedInUserId);
-    return true;
-  });
+const filteredPetitions = petitions.filter((p) => {
+  // Tab Filters
+  if (activeTab === "mine" && p.createdBy !== loggedInUserId) return false;
+  if (activeTab === "signed" && !p.signatures.some(s => s.userId === loggedInUserId)) return false;
+
+  // Status Filter
+  if (filterStatus !== "all" && (p.status || "pending") !== filterStatus) return false;
+
+  // Category Filter
+  if (filterCategory !== "all" && p.category !== filterCategory) return false;
+
+  // Location Filter
+  if (filterLocation !== "all" && p.manualLocation !== filterLocation) return false;
+
+  return true;
+});
+
+const getShortAddress = (fullAddress) => {
+  if (!fullAddress) return "Unknown Location";
+
+  // Remove extra spaces
+  const clean = fullAddress.trim();
+
+  // Limit characters
+  if (clean.length > 30) {
+    return clean.substring(0, 30) + "...";
+  }
+
+  return clean;
+};
+
+
 
   return (
     <div className="petition-section" style={{ width: "100%" }}>
       <div className="petition-container">
-        <div className="petition-header" style={{ color: "#21003f" }}>
-          <h2>Citizen Petitions</h2>
-          <button className="create-btn" onClick={() => setShowModal(true)}>
-            + Create Petition
-          </button>
-        </div>
+        <div className="petition-fixed-header">
+        {/* HEADER */}
+<div className="petition-header" style={{ color: "#21003f" }}>
+  <h2>Citizen Petitions</h2>
+  <button className="create-btn" onClick={() => setShowModal(true)}>
+    + Create Petition
+  </button>
+</div>
 
-        {/* Tabs */}
-        <div className="petition-tabs">
-          {["all", "mine", "signed"].map((tab) => (
-            <button
-              key={tab}
-              className={activeTab === tab ? "active" : ""}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "all"
-                ? "All Petitions"
-                : tab === "mine"
-                  ? "My Petitions"
-                  : "Signed Petitions"}
-            </button>
-          ))}
-        </div>
+{/* FILTER BAR - Should be OUTSIDE header */}
+<div className="petition-filter-bar">
+  <div className="filter-group">
+    <label>Status</label>
+    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+      <option value="all">All Statuses</option>
+      <option value="approved">Approved</option>
+      <option value="pending">Pending</option>
+      <option value="closed">Closed</option>
+    </select>
+  </div>
+
+  <div className="filter-group">
+    <label>Category</label>
+    <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+      <option value="all">All Categories</option>
+      <option value="Environment">Environment</option>
+      <option value="Infrastructure">Infrastructure</option>
+      <option value="Education">Education</option>
+      <option value="Healthcare">Healthcare</option>
+      <option value="Public Safety">Public Safety</option>
+      <option value="Miscellaneous">Miscellaneous</option>
+    </select>
+  </div>
+
+  <div className="filter-group">
+    <label>Location</label>
+    <select value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)}>
+      <option value="all">All Locations</option>
+      {[...new Set(petitions.map(p => p.manualLocation || "Unknown"))]
+        .map((loc, i) => (
+          <option key={i} value={loc}>{loc}</option>
+        ))}
+    </select>
+  </div>
+</div>
+
+{/* TABS */}
+<div className="petition-tabs">
+  {["all", "mine", "signed"].map((tab) => (
+    <button
+      key={tab}
+      className={activeTab === tab ? "active" : ""}
+      onClick={() => setActiveTab(tab)}
+    >
+      {tab === "all"
+        ? "All Petitions"
+        : tab === "mine"
+        ? "My Petitions"
+        : "Signed Petitions"}
+    </button>
+  ))}
+    </div>
+</div>
 
         {/* Petition List */}
         <div className="petition-list">
@@ -270,36 +356,58 @@ const PetitionsSection = ({ user }) => {
 
               return (
                 <div key={p._id} className="petition-card" style={{position:"relative"}}>
-                  <h3>{p.title}</h3>
-                  <p style={{position:"absolute", top:"10px", right:"10px", padding:"3px 7px", borderRadius:"7px", backgroundColor:"#ebebebff", fontSize:"11px",fontWeight:"normal"}}>
-                    <strong style={{ color: p.status === "approved" ? "green" : "orange" }}>
-                      {p.status || "pending"}
-                    </strong>
-                  </p>
+                  <div className="petition-top-left">
+                      <span className="petition-category">{p.category}</span>
+                      <span className="petition-status"
+                            style={{ color: p.status === "approved" ? "green" : "orange" }}>
+                        {p.status || "pending"}
+                      </span>
+                    </div>
+
+                    <h3 className="petition-title">{p.title}</h3>
 
                   <p>{p.description}</p>
-                  <span className="petition-category">{p.category}</span>
-                  <p className="petition-location">
-                    📍{" "}
-                    {p.manualLocation
-                      ? p.manualLocation
-                      : p.browserLocation?.latitude && p.browserLocation?.longitude
-                        ? `${p.browserLocation.latitude.toFixed(
-                          3
-                        )}, ${p.browserLocation.longitude.toFixed(3)}`
-                        : "Location not specified"}
-                  </p>
+                  {/* <span className="petition-category">{p.category}</span> */}
+                 <p className="petition-location">
+                        <FiMapPin size={15} style={{ marginRight: "4px" }} />
+                        {p.manualLocation
+                          ? getShortAddress(p.manualLocation)
+                          : p.browserLocation?.latitude && p.browserLocation?.longitude
+                            ? `${p.browserLocation.latitude.toFixed(3)}, ${p.browserLocation.longitude.toFixed(3)}`
+                            : "Location not specified"}
+
+                        {/* INFO ICON FOR FULL ADDRESS */}
+                        {p.manualLocation && (
+                          <span
+                            onClick={() => {
+                              setSelectedAddress(p.manualLocation);
+                              setShowAddressModal(true);
+                            }}
+                            style={{
+                              marginLeft: "6px",
+                              cursor: "pointer",
+                              color: "#5a2a9e",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            <FiInfo size={15} style={{ marginLeft: "6px", cursor: "pointer", color: "#5a2a9e" }} />
+                          </span>
+                        )}
+                      </p>
+
                   <div className="petition-meta">
                     <p className="signature-count">
-                      ✍️ {p.signatures.length}{" "}
+                      <FiPenTool size={15} style={{ marginRight: "4px" }} />
+                      {p.signatures.length}
                       {p.signatures.length === 1 ? "Signature" : "Signatures"}
                     </p>
                   </div>
 
                   <div className="petition-actions">
                     {p.isClosed ? (
-                      <button className="btn btn-secondary" disabled>
-                        🔒 Closed
+                      <button className="close-btn" disabled>
+                        <FiLock style={{ marginRight: "6px" }} />
+                        Closed
                       </button>
                     ) : (
                       <>
@@ -316,7 +424,15 @@ const PetitionsSection = ({ user }) => {
                             cursor: alreadySigned ? "not-allowed" : "pointer",
                           }}
                         >
-                          {alreadySigned ? "Signed ✅" : "Sign"}
+                         {alreadySigned ? (
+                          <>
+                          <FiCheckCircle style={{ marginRight: "5px" }} />
+                          Signed
+                          </>
+                          ) : (
+                          "Sign"
+                        )}
+
                         </button>
 
                         {activeTab === "mine" && (
@@ -325,19 +441,19 @@ const PetitionsSection = ({ user }) => {
                               className="edit-btn"
                               onClick={() => handleEditPetition(p)}
                             >
-                              ✏️ Edit
+                              <FiEdit /> Edit
                             </button>
                             <button
                               className="delete-btn"
                               onClick={() => handleDeletePetition(p._id)}
                             >
-                              ❌ Delete
+                              <FiTrash2 /> Delete
                             </button>
                             <button
                               className="close-btn"
                               onClick={() => handleClosePetition(p._id)}
                             >
-                              🔒 Close Petition
+                              <FiLock /> Close Petition
                             </button>
                           </>
                         )}
@@ -412,7 +528,8 @@ const PetitionsSection = ({ user }) => {
                 className="detect-btn"
                 onClick={detectLocation}
               >
-                📍 Detect My Location
+                <FiCrosshair style={{ marginRight: "6px" }} /> Detect My Location
+
               </button>
 
               <div className="modal-buttons">
@@ -432,6 +549,21 @@ const PetitionsSection = ({ user }) => {
         </div>
       )}
         <ToastContainer />
+        {showAddressModal && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <h2>Full Location</h2>
+                <p style={{ marginTop: "10px" }}>{selectedAddress}</p>
+
+                <button
+                  className="cancel-btn"
+                  onClick={() => setShowAddressModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
     </div>
   );
 };
