@@ -6,6 +6,7 @@ import PetitionsSection from "./sections/PetitionsSection";
 import PollsSection from "./sections/PollsSection";
 import ReportsSection from "./sections/ReportsSection";
 import CommunitySection from "./sections/CommunitySection";
+import FeedbackSection from "./sections/FeedbackSection.js"; // <-- NEW IMPORT
 import "../styles/Dashboard.css";
 import {
   FileText,
@@ -13,6 +14,7 @@ import {
   Flag,
   Users,
   LayoutDashboard,
+  MessageSquare,
 } from "../assets/icons";
 
 const Dashboard = ({ user }) => {
@@ -22,6 +24,7 @@ const Dashboard = ({ user }) => {
     { id: "polls", label: "Polls", icon: BarChart2 },
     { id: "reports", label: "Reports", icon: Flag },
     { id: "community", label: "Community", icon: Users },
+    { id: "feedback", label: "Feedback", icon: MessageSquare },
   ];
 
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -47,6 +50,9 @@ const Dashboard = ({ user }) => {
       case "community":
         setLabel("Community");
         break;
+      case "feedback":
+        setLabel("Feedback");
+        break;
       default:
         setLabel("Dashboard");
     }
@@ -70,6 +76,8 @@ const Dashboard = ({ user }) => {
       return <ReportsSection user={user}/>;
     case "community":
       return <CommunitySection user={user}/>;
+     case 'feedback': // <-- NEW CASE
+        return <FeedbackSection user={user} />;
     default:
       return <DashboardHome user={user} />;
   }
