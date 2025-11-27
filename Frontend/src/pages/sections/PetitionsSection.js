@@ -5,7 +5,13 @@ import {
     Search, Calendar, Edit2, Trash2, ChevronDown, Eye 
 } from "../../assets/icons"; 
 import { ToastContainer, toast } from 'react-toastify'; 
+import { handleError, handleSuccess } from '../../utils';
 import "../../styles/Petitions.css";
+
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
 
 const API_URL = "http://localhost:8080";
 
@@ -49,98 +55,235 @@ const PetitionsSection = ({ user }) => {
 
   // --- Form State ---
   const [newPetition, setNewPetition] = useState({
-    id: null, // For editing
-    title: "",
-    description: "",
-    category: "Community",
-    location: "", 
-    goal: 100
-  });
+  id: null,
+  title: "",
+  description: "",
+  category: "Community",
+  manualLocation: "",
+  browserLocation: { latitude: null, longitude: null },
+  goal: 99,
+});
+
 
   const loggedInUserId = localStorage.getItem("id") || (user && (user.uid || user._id));
 
-  // ✅ Fetch Petitions
-  const fetchPetitions = async () => {
-    try {
-      setError(null);
-      const res = await axios.get(`${API_URL}/petition/all`);
-      if (res.data.success) {
-        // Process data to match UI needs
-        const formatted = res.data.data.map(p => ({
-            ...p,
-            signatures: Array.isArray(p.signatures) ? p.signatures : [],
-            goal: p.signatureGoal || 100, // Ensure goal is grabbed correctly
-            status: p.status || 'review'
+   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState("");
+  
+const handleFilterChange = (e) => {
+    setFilters({
+        ...filters,
+        [e.target.name]: e.target.value
+    });
+};const allLocations = useMemo(() => {
+    const locs = petitions
+        .map(p => p.manualLocation)
+        .filter(l => l && l.trim() !== "");
+    return [...new Set(locs)];
+}, [petitions]);
+
+const [showMapModal, setShowMapModal] = useState(false);
+const [selectedPosition, setSelectedPosition] = useState(
+  newPetition.browserLocation?.latitude && newPetition.browserLocation?.longitude
+    ? [newPetition.browserLocation.latitude, newPetition.browserLocation.longitude]
+    : null
+);
+
+
+
+//component for location 
+const LocationMarker = ({ setNewPetition }) => {
+  const [position, setPosition] = useState(null);
+
+  const map = useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      setPosition(e.latlng);
+
+      // Reverse geocode to get address
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        const address = data.display_name || `${lat}, ${lng}`;
+
+        setNewPetition(prev => ({
+          ...prev,
+          browserLocation: { latitude: lat, longitude: lng },
+          manualLocation: address
         }));
-        setPetitions(formatted);
+      } catch (err) {
+        console.error("Error fetching address:", err);
+        setNewPetition(prev => ({
+          ...prev,
+          browserLocation: { latitude: lat, longitude: lng },
+          manualLocation: `${lat}, ${lng}`
+        }));
       }
+    },
+
+    locationfound(e) {
+      setPosition(e.latlng);
+    }
+  });
+
+  return position === null ? null : (
+    <Marker
+      position={position}
+      draggable={true}
+      eventHandlers={{
+        dragend: async (e) => {
+          const latlng = e.target.getLatLng();
+          setPosition(latlng);
+
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
+            const data = await res.json();
+            const address = data.display_name || `${latlng.lat}, ${latlng.lng}`;
+
+            setNewPetition(prev => ({
+              ...prev,
+              browserLocation: { latitude: latlng.lat, longitude: latlng.lng },
+              manualLocation: address
+            }));
+          } catch (err) {
+            setNewPetition(prev => ({
+              ...prev,
+              browserLocation: { latitude: latlng.lat, longitude: latlng.lng },
+              manualLocation: `${latlng.lat}, ${latlng.lng}`
+            }));
+          }
+        }
+      }}
+    />
+  );
+};
+
+
+
+
+
+
+  // ✅ Fetch Petitions
+ const fetchPetitions = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/petition/all`);
+      if (res.data.success) setPetitions(res.data.data);
     } catch (err) {
       console.error("Error fetching petitions:", err);
-      setError("Could not connect to server.");
     }
   };
 
+   // ✅ Open Create Petition modal automatically if triggered from Dashboard
   useEffect(() => {
+    const fromDashboard = localStorage.getItem("openCreatePetition");
+    if (fromDashboard === "true") {
+      setShowModal(true);
+      localStorage.removeItem("openCreatePetition");
+    }
     fetchPetitions();
   }, []);
 
-  const allLocations = useMemo(() => {
-    const locs = petitions.map(p => p.manualLocation).filter(Boolean);
-    return [...new Set(locs)];
-  }, [petitions]);
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+  // // ✅ Detect browser location
+  // const detectLocation = async () => {
+  //   if (!navigator.geolocation) {
+  //     // alert("❌ Geolocation is not supported by your browser.");
+  //     handleError("Geolocation is not supported by your browser");
+
+  //     return;
+  //   }
+
+  //   navigator.geolocation.getCurrentPosition(
+  //     async (position) => {
+  //       const { latitude, longitude } = position.coords;
+  //       try {
+  //         const response = await fetch(
+  //           `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+  //         );
+  //         const data = await response.json();
+  //         const address = data.display_name || `${latitude}, ${longitude}`;
+
+  //         setNewPetition((prev) => ({
+  //           ...prev,
+  //           manualLocation: address,
+  //           browserLocation: { latitude, longitude },
+  //         }));
+  //         // alert("✅ Location detected successfully!");
+  //         handleSuccess("Location detected successfully");
+  //       } catch (error) {
+  //         console.error("Error fetching address:", error);
+  //         setNewPetition((prev) => ({
+  //           ...prev,
+  //           manualLocation: `${latitude}, ${longitude}`,
+  //           browserLocation: { latitude, longitude },
+  //         }));
+  //       }
+  //     },
+  //     (error) => {
+  //       console.error("Location error:", error);
+  //       // alert("❌ Unable to fetch your location. Please enter manually.");
+  //       handleError("Unable to fetch your location. Please enter manually.");
+  //     }
+  //   );
+  // };
+
+ // ✅ Create or Update Petition
+const handleCreateOrUpdate = async (e) => {
+  e.preventDefault();
+  const isEdit = !!newPetition.id;
+  const endpoint = isEdit 
+    ? `${API_URL}/petition/${newPetition.id}/update` 
+    : `${API_URL}/petition/create`;
+
+  const payload = {
+    title: newPetition.title,
+    description: newPetition.description,
+    category: newPetition.category,
+    manualLocation: newPetition.manualLocation || "",
+    browserLocation: newPetition.browserLocation || null,
+    goal: Number(newPetition.goal),
+    createdBy: loggedInUserId,
+    userId: loggedInUserId,
+    author: user?.name || "User",
+    status: "review"   // ensure status resets on edit
   };
 
-  // ✅ Create or Update Petition
-  const handleCreateOrUpdate = async (e) => {
-    e.preventDefault();
-    const isEdit = !!newPetition.id;
-    const endpoint = isEdit ? `${API_URL}/petition/${newPetition.id}/update` : `${API_URL}/petition/create`;
-    
-    // ✅ Optimistic update for UI feedback
-    if (isEdit) {
-       setPetitions(prev => prev.map(p => 
-           (p._id === newPetition.id || p.id === newPetition.id) 
-           ? { ...p, status: 'review', title: newPetition.title, description: newPetition.description } 
-           : p
-       ));
+  try {
+    const res = isEdit
+      ? await axios.put(endpoint, payload)
+      : await axios.post(endpoint, payload);
+
+    if (res.data.success) {
+      handleSuccess(isEdit 
+        ? "Petition Updated! It is now under review."
+        : "Petition Created! Under Review."
+      );
+
+      setShowModal(false);
+
+      // Reset form state
+      setNewPetition({
+        id: null,
+        title: "",
+        description: "",
+        category: "Community",
+        manualLocation: "",
+        browserLocation: { latitude: null, longitude: null },
+        goal: 99
+      });
+
+      // ✅ Fetch fresh data from backend to update frontend
+      fetchPetitions();
+
+    } else {
+      handleError(res.data.message);
     }
+  } catch (err) {
+    console.error("Error submitting:", err);
+    handleError("Failed to submit petition.");
+  }
+};
 
-    try {
-        const payload = {
-            title: newPetition.title,
-            description: newPetition.description,
-            category: newPetition.category,
-            manualLocation: newPetition.location,
-            signatureGoal: Number(newPetition.goal), // Ensure it sends as number
-            userId: loggedInUserId,
-            // For create only:
-            createdBy: loggedInUserId,
-            author: user?.name || "User",
-            // ✅ Requirement: Reset to 'review' on update
-            status: "review" 
-        };
-
-        const res = isEdit 
-            ? await axios.put(endpoint, payload)
-            : await axios.post(endpoint, payload);
-
-        if (res.data.success) {
-            alert(isEdit ? "Petition Updated! It is now under review." : "Petition Created! Under Review.");
-            setShowModal(false);
-            setNewPetition({ id: null, title: "", description: "", category: "Community", location: "", goal: 100 });
-            fetchPetitions(); // Refetch to show updated goal/status immediately
-        } else {
-            alert(res.data.message);
-        }
-    } catch (err) {
-        console.error("Error submitting:", err);
-        alert("Failed to submit petition.");
-    }
-  };
 
   // ✅ Delete Own Petition
   const handleDelete = async (id) => {
@@ -159,39 +302,54 @@ const PetitionsSection = ({ user }) => {
   // ✅ Edit Helper
   const openEditModal = (p) => {
       setNewPetition({
-          id: p._id || p.id,
-          title: p.title,
-          description: p.description,
-          category: p.category,
-          location: p.manualLocation,
-          goal: p.signatureGoal || p.goal || 100
-      });
+        id: p._id || p.id,
+        title: p.title,
+        description: p.description,
+        category: p.category,
+        manualLocation: p.manualLocation || "",
+        browserLocation: p.browserLocation || { latitude: null, longitude: null },
+        goal: p.goal,
+    });
       setShowModal(true);
   };
+// Sign a petition
+const handleSign = async (id) => {
+  if (!loggedInUserId) {
+    alert("User ID missing. Please re-login.");
+    return;
+  }
+  
+  try {
+    const res = await axios.post(`${API_URL}/petition/${id}/sign`, {
+      userId: loggedInUserId,
+      name: user?.name || "User"
+    });
 
-  // ✅ Sign Petition
-  const handleSign = async (id) => {
-      try {
-          const res = await axios.post(`${API_URL}/petition/${id}/sign`, { userId: loggedInUserId, name: user?.name || "User" });
-          if(res.data.success) fetchPetitions();
-      } catch(e) { alert("Failed to sign."); }
-  };
+    if (res.data.success) fetchPetitions();
+    else alert(res.data.message || "Failed to sign.");
+  } catch (e) {
+    alert("Failed to sign petition.");
+  }
+};
 
-  // ✅ Unsign Petition
-  const handleUnsign = async (id) => {
-      if(!window.confirm("Are you sure you want to remove your signature?")) return;
-      try {
-          const res = await axios.post(`${API_URL}/petition/${id}/unsign`, { userId: loggedInUserId });
-          if(res.data.success) {
-              alert("Signature removed successfully.");
-              fetchPetitions();
-          } else {
-              alert(res.data.message || "Failed to unsign.");
-          }
-      } catch(e) { 
-          alert("Failed to remove signature."); 
-      }
-  };
+
+// Unsign a petition
+const handleUnsign = async (id) => {
+  if (!window.confirm("Are you sure you want to remove your signature?")) return;
+  try {
+    const res = await axios.post(`${API_URL}/petition/${id}/unsign`, { userId: loggedInUserId });
+    if (res.data.success) {
+      alert("Signature removed successfully.");
+      fetchPetitions();
+    } else {
+      alert(res.data.message || "Failed to unsign.");
+    }
+  } catch (e) {
+    alert("Failed to remove signature.");
+    console.error(e);
+  }
+};
+
 
   // ✅ Report Logic
   const openReportModal = (id) => {
@@ -248,7 +406,6 @@ const PetitionsSection = ({ user }) => {
   return (
     <div className="petition-section">
       <div className="petition-container">
-        
         <div className="petition-header">
             <div>
                 <h2 className="page-title">Citizen Petitions</h2>
@@ -256,57 +413,80 @@ const PetitionsSection = ({ user }) => {
             </div>
 
             <button className="create-btn" onClick={() => {
-                setNewPetition({ id: null, title: "", description: "", category: "Community", location: "", goal: 100 });
+                setNewPetition({ id: null, title: "", description: "", category: "Community", location: "" });
                 setShowModal(true);
               }}>
                 <Plus size={18}/> Create Petition
             </button>
         </div>
 
-        {/* ✅ Toolbar: Tabs + Filters */}
-        <div className="petition-toolbar">
-            <div className="petition-tabs">
-                <button className={`petition-tab-btn ${activeTab==='all'?'active':''}`} onClick={()=>setActiveTab('all')}>All Petitions</button>
-                <button className={`petition-tab-btn ${activeTab==='mine'?'active':''}`} onClick={()=>setActiveTab('mine')}>My Petitions</button>
-                <button className={`petition-tab-btn ${activeTab==='signed'?'active':''}`} onClick={()=>setActiveTab('signed')}>Signed by Me</button>
-            </div>
+        {/* FIXED: Toolbar row → ONLY Tabs + Filters */}
+<div className="petition-toolbar">
 
-            <div className="filter-actions">
-                <div className="filter-dropdown-container">
-                    <button className="filter-btn"><MapPin size={16}/> {filters.location === 'all' ? 'All Locations' : filters.location} <ChevronDown size={14}/></button>
-                    <select name="location" value={filters.location} onChange={handleFilterChange} className="filter-select">
-                        <option value="all">All Locations</option>
-                        {allLocations.map(l=><option key={l} value={l}>{l}</option>)}
-                    </select>
-                </div>
-                <div className="filter-dropdown-container">
-                    <button className="filter-btn"><Filter size={16}/> {filters.category === 'all' ? 'All Categories' : filters.category} <ChevronDown size={14}/></button>
-                    <select name="category" value={filters.category} onChange={handleFilterChange} className="filter-select">
-                        <option value="all">All Categories</option>
-                        <option value="Environment">Environment</option>
-                        <option value="Infrastructure">Infrastructure</option>
-                        <option value="Education">Education</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Community">Community</option>
-                    </select>
-                </div>
-                <div className="filter-dropdown-container">
-                    <button className="filter-btn">Status: {filters.status === 'all' ? 'All' : filters.status} <ChevronDown size={14}/></button>
-                    <select name="status" value={filters.status} onChange={handleFilterChange} className="filter-select">
-                        <option value="all">All</option>
-                        <option value="active">Active</option>
-                        <option value="review">Under Review</option>
-                        <option value="closed">Closed</option>
-                    </select>
-                </div>
-            </div>
+    {/* Left: Tabs */}
+    <div className="petition-tabs">
+        <button className={`petition-tab-btn ${activeTab==='all'?'active':''}`} onClick={()=>setActiveTab('all')}>
+            All Petitions
+        </button>
+        <button className={`petition-tab-btn ${activeTab==='mine'?'active':''}`} onClick={()=>setActiveTab('mine')}>
+            My Petitions
+        </button>
+        <button className={`petition-tab-btn ${activeTab==='signed'?'active':''}`} onClick={()=>setActiveTab('signed')}>
+            Signed by Me
+        </button>
+    </div>
+
+    {/* Middle: Filters */}
+    <div className="filter-actions">
+        <div className="filter-dropdown-container">
+            <button className="filter-btn">
+                <MapPin size={16}/> {filters.location === 'all' ? 'All Locations' : filters.location}
+                <ChevronDown size={14}/>
+            </button>
+            <select name="location" value={filters.location} onChange={handleFilterChange} className="filter-select">
+                <option value="all">All Locations</option>
+                {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
         </div>
 
+        <div className="filter-dropdown-container">
+            <button className="filter-btn">
+                <Filter size={16}/> {filters.category === 'all' ? 'All Categories' : filters.category}
+                <ChevronDown size={14}/>
+            </button>
+            <select name="category" value={filters.category} onChange={handleFilterChange} className="filter-select">
+                <option value="all">All Categories</option>
+                <option value="Environment">Environment</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Education">Education</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Community">Community</option>
+            </select>
+        </div>
+
+        <div className="filter-dropdown-container">
+            <button className="filter-btn">
+                Status: {filters.status === 'all' ? 'All' : filters.status}
+                <ChevronDown size={14}/>
+            </button>
+            <select name="status" value={filters.status} onChange={handleFilterChange} className="filter-select">
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="review">Under Review</option>
+                <option value="closed">Closed</option>
+            </select>
+    
+        </div>
+    </div>
+    </div>
+    <br/>
+
         {/* ✅ Cards Grid */}
+    <div className="petition-list-wrapper">
         <div className="petition-list">
             {filteredPetitions.map(p => {
                 const sigCount = p.signatures.length;
-                const goal = p.goal || 100;
+                const goal = p.goal ;
                 const progress = Math.min((sigCount / goal) * 100, 100);
                 const isOwner = p.createdBy === loggedInUserId;
                 const isSigned = p.signatures.some(s => s.userId === loggedInUserId);
@@ -342,13 +522,10 @@ const PetitionsSection = ({ user }) => {
                         </div>
 
                         <div className="card-footer">
-                            <button className="view-details-btn" onClick={() => setViewPetition(p)}>
-                                 {/* ✅ Eye Icon Button */}
-                                <button className="view" title="View Details" onClick={() => setViewPetition(p)}>
-                                    <Eye size={16}/>
-                                </button>
-                                View Details
-                            </button>
+                          <button className="view-details-btn" onClick={() => setViewPetition(p)}>
+                            <Eye size={16} className="view-icon" />
+                            View Details
+                        </button>
                             
                             <div className="action-btn-group">
 
@@ -371,20 +548,21 @@ const PetitionsSection = ({ user }) => {
                                 </button>
 
                                 {/* Sign/Unsign Button - Hide if Closed */}
-                                {isActive && !isClosed && (
-                                    <button 
-                                        className={`sign-btn ${isSigned ? 'signed' : 'active'}`} 
-                                        onClick={() => isSigned ? handleUnsign(p._id || p.id) : handleSign(p._id || p.id)}
-                                        title={isSigned ? "Click to Remove Signature" : "Sign Petition"}
-                                    >
-                                        {isSigned ? 'Signed (Remove)' : 'Sign Petition'}
-                                    </button>
-                                )}
-                                {isClosed && (
-                                    <button className="sign-btn" disabled style={{background: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed'}}>
-                                        Closed
-                                    </button>
-                                )}
+                               {isActive && !isClosed && (
+                                <button 
+                                  className={`sign-btn ${isSigned ? 'signed' : 'active'}`} 
+                                  onClick={() => isSigned ? handleUnsign(p._id || p.id) : handleSign(p._id || p.id)}
+                                  title={isSigned ? "Click to Remove Signature" : "Sign Petition"}
+                                >
+                                  {isSigned ? 'Signed (Remove)' : 'Sign Petition'}
+                                </button>
+                              )}
+                              {isClosed && (
+                                <button className="sign-btn" disabled style={{background: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed'}}>
+                                  Closed
+                                </button>
+                              )}
+
                             </div>
                         </div>
                     </div>
@@ -392,6 +570,8 @@ const PetitionsSection = ({ user }) => {
             })}
         </div>
       </div>
+
+    </div>
 
       {/* ✅ View Details Modal */}
       {viewPetition && (
@@ -469,13 +649,27 @@ const PetitionsSection = ({ user }) => {
                 </div>
                 <div className="form-group">
                     <label>Location</label>
-                    <input placeholder="Select a Location" value={newPetition.location} onChange={(e) => setNewPetition({...newPetition, location: e.target.value})} />
-                </div>
+                    <input
+                      placeholder="Select a Location"
+                      value={newPetition.manualLocation} // <-- updated by LocationMarker
+                      onChange={(e) => setNewPetition({ ...newPetition, manualLocation: e.target.value })}
+                    />
+
+                        <button
+                          type="button"
+                          onClick={() => setShowMapModal(true)}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                        >
+                          Select Location on Map
+                        </button>
+
+                  </div>
+
               </div>
 
               <div className="form-group">
                 <label>Signature Goal</label>
-                <input type="number" value={newPetition.goal} onChange={(e) => setNewPetition({...newPetition, goal: e.target.value})} />
+                <input type="number" value={newPetition.goal} onChange={(e) => setNewPetition({...newPetition, goal: Number(e.target.value)})} />
                 <span className="form-helper">How many signatures are you aiming to collect?</span>
               </div>
 
@@ -541,6 +735,49 @@ const PetitionsSection = ({ user }) => {
           </div>
         </div>
       )}
+
+      <ToastContainer />
+       {showMapModal && (
+  <div className="modal-overlay">
+    <div className="modal" style={{ maxWidth: '600px', width: '90%', height: '500px' }}>
+      <div className="modal-header">
+        <h3>Select Location</h3>
+        <button className="modal-close" onClick={() => setShowMapModal(false)}><X size={24}/></button>
+      </div>
+
+      <div style={{ height: '400px', width: '100%' }}>
+      <MapContainer
+          center={[
+              newPetition.browserLocation?.latitude || 18.5204,
+              newPetition.browserLocation?.longitude || 73.8567
+            ]}
+
+          zoom={13}
+          style={{ height: '400px', width: '100%' }}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LocationMarker
+            position={selectedPosition}
+            setPosition={setSelectedPosition}
+            setNewPetition={setNewPetition}
+          />
+
+        </MapContainer>
+     
+        {selectedPosition === null && (
+            <div className="map-instruction" style={{position:'absolute',top:10,left:10,zIndex:1000,background:'#fff',padding:'5px 10px',borderRadius:4}}>
+              Click on map to select location
+            </div>
+          )}
+         </div>
+
+      <div className="modal-buttons" style={{marginTop:'1rem', display:'flex', justifyContent:'flex-end'}}>
+        <button className="submit-btn" onClick={() => setShowMapModal(false)}>Done</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

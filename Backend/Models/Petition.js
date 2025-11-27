@@ -18,7 +18,11 @@ const petitionSchema = new mongoose.Schema(
       latitude: { type: Number },
       longitude: { type: Number },
     },
-
+    goal: {
+      type: Number,
+      default: 100,   // you can override from frontend
+    },
+    
     signatures: [
       {
         userId: String,
@@ -29,7 +33,7 @@ const petitionSchema = new mongoose.Schema(
     isClosed: { type: Boolean, default: false },
     status: {
       type: String,
-      enum: ["pending", "approved"],
+      enum: ['active', 'pending', 'review', 'closed', 'approved'], // ✅ add approved
       default: "pending"
     }
 

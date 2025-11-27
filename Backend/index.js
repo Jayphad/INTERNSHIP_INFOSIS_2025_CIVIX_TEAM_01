@@ -4,6 +4,9 @@ const cors = require('cors');
 const AuthRouter = require('./Routes/AuthRouter');
 const PetitionRouter = require('./Routes/PetitionRouter');
 require('./Models/db');
+const pollRoutes = require('./Routes/PollRouter');
+
+
 
 const app = express();
 
@@ -38,3 +41,6 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
+
+//polls
+app.use("/polls", pollRoutes);

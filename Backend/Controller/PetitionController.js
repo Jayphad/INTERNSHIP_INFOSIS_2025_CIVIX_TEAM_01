@@ -10,6 +10,7 @@ exports.createPetition = async (req, res) => {
       createdBy,
       manualLocation,
       browserLocation,
+      goal,
     } = req.body;
 
     if (!title || !description || !createdBy) {
@@ -25,6 +26,7 @@ exports.createPetition = async (req, res) => {
       createdBy,
       manualLocation: manualLocation || "",
       browserLocation: browserLocation || {}, // latitude & longitude
+      goal: goal || 99,
     });
 
     await petition.save();
@@ -57,35 +59,30 @@ exports.signPetition = async (req, res) => {
     const petition = await Petition.findById(req.params.id);
 
     if (!petition)
-      return res
-        .status(404)
-        .json({ success: false, message: "Petition not found" });
+      return res.status(404).json({ success: false, message: "Petition not found" });
+
     if (petition.isClosed)
-      return res.status(400).json({
-        success: false,
-        message: "Petition is closed. Signing is disabled.",
-    });
+      return res.status(400).json({ success: false, message: "Petition is closed. Signing is disabled." });
 
+    // ✅ Compare userId safely as string
     const alreadySigned = petition.signatures.some(
-      (sig) => sig.userId === userId
+      (sig) => sig.userId.toString().trim() === userId.toString().trim()
     );
-    if (alreadySigned)
-      return res
-        .status(400)
-        .json({ success: false, message: "Already signed" });
 
-    petition.signatures.push({ userId, name });
+    if (alreadySigned)
+      return res.status(400).json({ success: false, message: "Already signed" });
+
+    // ✅ Push userId as string
+    petition.signatures.push({ userId: userId.toString(), name });
+
     await petition.save();
 
-    res.json({
-      success: true,
-      message: "Petition signed successfully",
-      data: petition,
-    });
+    res.json({ success: true, message: "Petition signed successfully", data: petition });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // ✅ Get petitions created by a specific user
 exports.getUserPetitions = async (req, res) => {
@@ -101,13 +98,14 @@ exports.getUserPetitions = async (req, res) => {
 exports.updatePetition = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, category, manualLocation } = req.body;
+    const { title, description, category, manualLocation, userId } = req.body;
     const petition = await Petition.findById(id);
 
     if (!petition)
       return res.status(404).json({ success: false, message: "Petition not found" });
 
-    if (petition.createdBy !== req.body.userId)
+    // ✅ Compare ObjectId correctly
+    if (petition.createdBy.toString() !== userId)
       return res.status(403).json({ success: false, message: "Unauthorized action" });
 
     petition.title = title || petition.title;
@@ -115,12 +113,17 @@ exports.updatePetition = async (req, res) => {
     petition.category = category || petition.category;
     petition.manualLocation = manualLocation || petition.manualLocation;
 
+    // ✅ Reset status to 'review' whenever edited
+    petition.status = 'review';
+
     await petition.save();
     res.json({ success: true, message: "Petition updated successfully", data: petition });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // ✅ Delete petition (only by creator)
 exports.deletePetition = async (req, res) => {
@@ -190,3 +193,32 @@ exports.approvePetition = async (req, res) => {
   }
 };
 
+// ✅ Unsign a petition (remove user signature)
+exports.unsignPetition = async (req, res) => {
+  try {
+    const { id } = req.params; // Petition ID
+    const { userId } = req.body;
+
+    const petition = await Petition.findById(id);
+    if (!petition)
+      return res.status(404).json({ success: false, message: "Petition not found" });
+
+    // Remove signature by userId
+    const initialLength = petition.signatures.length;
+    petition.signatures = petition.signatures.filter(
+      (sig) => sig.userId.toString() !== userId.toString()
+    );
+
+    if (petition.signatures.length === initialLength) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You haven't signed this petition." });
+    }
+
+    await petition.save();
+    res.json({ success: true, message: "Signature removed successfully", data: petition });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to remove signature" });
+  }
+};

@@ -26,7 +26,9 @@ const DashboardHeader = ({ user, heading, toggleSidebar }) => {
   return (
     <header className="dashboard-header">
       <button onClick={toggleSidebar} className="sidebar-toggle-btn" style={{display:"flex",alignItems:"center",gap:"15px", marginLeft:"30px"}}>
-        ☰
+       <p className="menu-icon">
+         ☰
+       </p>
         <p style={{display:"inline", fontSize:"16px"}}>{heading}</p>
       </button>
 

@@ -454,7 +454,11 @@ DashBOard HomePage
   font-size: 16px;
   text-transform: uppercase;
 }
-
+ .dashboard-header .menu-icon{
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+ }
 /* Adjust layout when sidebar is closed (mobile view) */
 @media (max-width: 1024px) {
   .dashboard-header {
@@ -464,6 +468,10 @@ DashBOard HomePage
   }
   .sidebar-container{
     margin-top: 60px;
+  }
+  .dashboard-header .menu-icon{
+    display: block;
+    margin-left: -40px;
   }
 }
 
