@@ -5,8 +5,8 @@ const AuthRouter = require('./Routes/AuthRouter');
 const PetitionRouter = require('./Routes/PetitionRouter');
 require('./Models/db');
 const pollRoutes = require('./Routes/PollRouter');
-
-
+const reportsRouter = require('./Routes/ReportRouter');
+const feedbackRouter = require('./Routes/FeedbackRouter');
 
 const app = express();
 
@@ -36,11 +36,25 @@ app.get('/ping', (req, res) => {
 app.use('/auth', AuthRouter);
 app.use('/petition', PetitionRouter);
 
+//polls
+app.use("/polls", pollRoutes);
+
+
+//report 
+app.use("/reports", reportsRouter);
+
+//for serving images statically for feedback
+app.use('/uploads', express.static('uploads'));
+
+
+//for feedback
+app.use('/feedback', feedbackRouter);
+
+
+
 // ✅ 5. Start Server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
 
-//polls
-app.use("/polls", pollRoutes);
