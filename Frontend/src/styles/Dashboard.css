@@ -478,4 +478,5 @@ DashBOard HomePage
 /* Add top padding to dashboard content so header doesn't overlap */
 .dashboard-content {
   padding-top: 80px; /* Ensures content is below header */
+  text-align: left;
 }

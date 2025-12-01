@@ -249,3 +249,53 @@
   font-size: 0.8rem;
   color: #64748b;
 }
+
+/* --- New Comment & Like Styles --- */
+.comment-input-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.comments-display {
+    margin-bottom: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.single-comment {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.comment-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+}
+
+.btn-send-comment {
+    background: #3b034e;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.active-heart { color: #ef4444 !important; fill: #ef4444; }

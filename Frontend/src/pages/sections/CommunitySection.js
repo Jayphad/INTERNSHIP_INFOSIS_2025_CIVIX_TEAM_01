@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormButton } from '../FormControls';
-import { Users, MessageSquare, Calendar, Plus, MapPin } from '../../assets/icons';
+import { Users, MessageSquare, Calendar, Plus, MapPin, Heart, Send } from '../../assets/icons';
 import '../../styles/Community.css';
 import Modal from './Modal'; // Re-use your Modal component
 import '../../styles/Modal.css';
@@ -61,31 +61,83 @@ const mockEvents = [
 
 // --- Components ---
 
-const DiscussionCard = ({ discussion }) => (
-  <div className="discussion-card">
-    <div className="discussion-header">
-      <div className="discussion-author-info">
-        <div className="author-avatar">{discussion.avatar}</div>
-        <div>
-          <h4 className="author-name">{discussion.author}</h4>
-          <span className="post-time">{discussion.time} • {discussion.category}</span>
+const DiscussionCard = ({ discussion, onLike, onComment }) => {
+  const [showInput, setShowInput] = useState(false);
+  const [text, setText] = useState("");
+
+  const handleSend = (e) => {
+      e.preventDefault();
+      if(text.trim()) {
+          onComment(discussion.id, text);
+          setText("");
+      }
+  };
+
+  // Safe check for comment count
+  const commentCount = discussion.commentsList ? discussion.commentsList.length : (discussion.comments || 0);
+
+  return (
+    <div className="discussion-card">
+      <div className="discussion-header">
+        <div className="discussion-author-info">
+          <div className="author-avatar">{discussion.avatar}</div>
+          <div>
+            <h4 className="author-name">{discussion.author}</h4>
+            <span className="post-time">{discussion.time} • {discussion.category}</span>
+          </div>
         </div>
       </div>
+      
+      <div className="discussion-content">
+        <h3 className="discussion-title">{discussion.title}</h3>
+        <p className="discussion-text">{discussion.content}</p>
+      </div>
+      
+      <div className="discussion-footer">
+        {/* LIKE BUTTON */}
+        <button 
+          className={`discussion-action-btn ${discussion.likedByMe ? 'active-heart' : ''}`} 
+          onClick={() => onLike(discussion.id)}
+        >
+          <Heart size={16} className={discussion.likedByMe ? 'active-heart' : ''} /> 
+          {discussion.likes} Likes
+        </button>
+        
+        {/* COMMENT TOGGLE BUTTON */}
+        <button className="discussion-action-btn" onClick={() => setShowInput(!showInput)}>
+          <MessageSquare size={16} /> {commentCount} Comments
+        </button>
+      </div>
+
+      {/* NEW: COMMENT SECTION (Hidden by default) */}
+      {showInput && (
+          <div className="comment-input-section">
+              {/* List existing comments */}
+              <div className="comments-display">
+                  {discussion.commentsList && discussion.commentsList.map((c, i) => (
+                      <div key={i} className="single-comment">
+                        <strong>{c.author}:</strong> {c.text}
+                      </div>
+                  ))}
+              </div>
+              
+              {/* Input Form */}
+              <form onSubmit={handleSend} className="comment-input-wrapper">
+                  <input 
+                    className="comment-input" 
+                    value={text} 
+                    onChange={(e)=>setText(e.target.value)} 
+                    placeholder="Write a comment..." 
+                  />
+                  <button type="submit" className="btn-send-comment">
+                    <Send size={14}/>
+                  </button>
+              </form>
+          </div>
+      )}
     </div>
-    <div className="discussion-content">
-      <h3 className="discussion-title">{discussion.title}</h3>
-      <p className="discussion-text">{discussion.content}</p>
-    </div>
-    <div className="discussion-footer">
-      <button className="discussion-action-btn">
-        <span className="heart-icon">♥</span> {discussion.likes} Likes
-      </button>
-      <button className="discussion-action-btn">
-        <MessageSquare size={16} /> {discussion.comments} Comments
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 const EventCard = ({ event }) => (
   <div className="event-card">
@@ -116,10 +168,10 @@ const CreatePostForm = ({ onCancel, onPost }) => {
             title,
             content,
             likes: 0,
-            comments: 0,
+            commentsList: [], // Initialize as empty array
             category
-        });
-    };
+          });
+      };
 
     return (
         <form onSubmit={handleSubmit} className="petition-create-form petition-modal-form">
@@ -161,14 +213,64 @@ const CreatePostForm = ({ onCancel, onPost }) => {
 }
 
 const CommunitySection = () => {
-  const [discussions, setDiscussions] = useState(mockDiscussions);
+  const [discussions, setDiscussions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // CHANGE 1: Load data from LocalStorage on load
+  useEffect(() => {
+    const saved = localStorage.getItem('civix_community_posts');
+    if (saved) {
+      setDiscussions(JSON.parse(saved));
+    } else {
+      setDiscussions(mockDiscussions); // Use default if empty
+      localStorage.setItem('civix_community_posts', JSON.stringify(mockDiscussions));
+    }
+  }, []);
+
   const handlePost = (newPost) => {
-      setDiscussions([newPost, ...discussions]);
+      const updatedList = [newPost, ...discussions];
+      setDiscussions(updatedList);
+      localStorage.setItem('civix_community_posts', JSON.stringify(updatedList)); // CHANGE 2: Save to storage
       setIsModalOpen(false);
   };
 
+  // Helper to save to state and storage
+  const saveData = (updatedData) => {
+      setDiscussions(updatedData);
+      localStorage.setItem('civix_community_posts', JSON.stringify(updatedData));
+  };
+
+  // 1. Handle Like Logic
+  const handleLike = (id) => {
+    const updated = discussions.map(post => {
+        if (post.id === id) {
+            const isLiked = post.likedByMe;
+            return { 
+                ...post, 
+                likes: isLiked ? post.likes - 1 : post.likes + 1, // Decrease if unliking, Increase if liking
+                likedByMe: !isLiked 
+            };
+        }
+        return post;
+    });
+    saveData(updated);
+  };
+
+  // 2. Handle Comment Logic
+  const handleComment = (id, text) => {
+    const updated = discussions.map(post => {
+        if (post.id === id) {
+            const list = post.commentsList || [];
+            return { 
+                ...post, 
+                commentsList: [...list, { author: "You", text: text }] 
+            };
+        }
+        return post;
+    });
+    saveData(updated);
+  };
+  
   return (
     <div className="dashboard-section-placeholder">
       <div className="reports-section-header">
@@ -193,7 +295,12 @@ const CommunitySection = () => {
           <h3 className="section-heading">Recent Discussions</h3>
           <div className="discussions-list">
             {discussions.map(discussion => (
-              <DiscussionCard key={discussion.id} discussion={discussion} />
+              <DiscussionCard 
+              key={discussion.id} 
+              discussion={discussion} 
+              onLike={handleLike} 
+              onComment={handleComment}
+              />
             ))}
           </div>
         </div>

@@ -6,7 +6,10 @@ import PetitionsSection from "./sections/PetitionsSection";
 import PollsSection from "./sections/PollsSection";
 import ReportsSection from "./sections/ReportsSection";
 import CommunitySection from "./sections/CommunitySection";
-import FeedbackSection from "./sections/FeedbackSection.js"; // <-- NEW IMPORT
+import FeedbackSection from "./sections/FeedbackSection.js";
+import SettingsSection from "./sections/SettingsSection";
+import HelpSection from "./sections/HelpSection";
+
 import "../styles/Dashboard.css";
 import {
   FileText,
@@ -53,6 +56,12 @@ const Dashboard = ({ user }) => {
       case "feedback":
         setLabel("Feedback");
         break;
+      case "settings":
+        setLabel("Settings");
+        break;
+      case "help":
+        setLabel("Help");
+        break;
       default:
         setLabel("Dashboard");
     }
@@ -78,6 +87,10 @@ const Dashboard = ({ user }) => {
       return <CommunitySection user={user}/>;
      case 'feedback': // <-- NEW CASE
         return <FeedbackSection user={user} />;
+    case "settings":
+      return <SettingsSection user={user} />;
+    case "help":
+      return <HelpSection user={user} />;
     default:
       return <DashboardHome user={user} />;
   }

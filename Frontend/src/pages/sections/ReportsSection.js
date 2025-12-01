@@ -149,12 +149,22 @@ const ReportsSection = () => {
   if (!reportData) return <p>Error loading reports.</p>;
 
   // ========== Extracting values from backend ==========
-  const totals = reportData.totals;
-  const petitionStatus = reportData.petitions.status;
-  const petitionDistribution = reportData.petitions.byCategory;
+  // const totals = reportData.totals;
+  // const petitionStatus = reportData.petitions.status;
+  // const petitionDistribution = reportData.petitions.byCategory;
 
-  const pollStatus = reportData.polls.status;
-  const pollLocationDist = reportData.polls.byLocation;
+  // const pollStatus = reportData.polls.status;
+  // const pollLocationDist = reportData.polls.byLocation;
+
+  // ========== Extracting values from backend ==========
+  // FIX: Added optional chaining (?.) and fallbacks (|| {}) to prevent crashes
+  const totals = reportData.totals || {}; 
+  
+  const petitionStatus = reportData.petitions?.status || {};
+  const petitionDistribution = reportData.petitions?.byCategory || []; 
+
+  const pollStatus = reportData.polls?.status || {};
+  const pollLocationDist = reportData.polls?.byLocation || [];
 
   // =========================
   // CHART DATA FOR PETITIONS

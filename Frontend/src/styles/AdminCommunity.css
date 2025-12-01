@@ -1,0 +1,304 @@
+/* src/styles/AdminCommunity.css */
+
+/* --- Main Layout --- */
+.admin-comm-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Stats Row (Optional Visuals) --- */
+.admin-comm-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.comm-stat-badge {
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.comm-stat-badge strong {
+    color: #3b034e; /* Primary Purple */
+    font-size: 1.1rem;
+}
+
+/* --- Discussion List --- */
+.admin-comm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* --- Individual Card Styling --- */
+.admin-comm-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    position: relative;
+    border-left: 4px solid #3b034e; /* Accent Border */
+}
+
+.admin-comm-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+
+/* Card Header */
+.comm-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.comm-author-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comm-avatar {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #475569;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.comm-meta h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.comm-meta span {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    display: block;
+    margin-top: 2px;
+}
+
+.comm-category-tag {
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Card Content */
+.comm-card-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.comm-card-content p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Card Footer */
+.comm-card-footer {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.comm-footer-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.comm-id-badge {
+    font-family: monospace;
+    background: #f8fafc;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+}
+
+/* --- Buttons --- */
+.btn-delete-post {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ef4444; /* Red */
+    background: #fff;
+    border: 1px solid #fee2e2;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete-post:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
+/* --- Empty State --- */
+.comm-empty-state {
+    text-align: center;
+    padding: 40px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
+    color: #94a3b8;
+}
+
+.comm-empty-state p {
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+/* ... keep your existing code ... */
+
+/* --- Admin Create Post Form --- */
+.admin-create-wrapper {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.create-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.create-form-header h3 {
+    margin: 0;
+    color: #3b034e;
+    font-size: 1.1rem;
+}
+
+.admin-form-group {
+    margin-bottom: 15px;
+}
+
+.admin-form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.admin-form-input, 
+.admin-form-select, 
+.admin-form-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    background: #f8fafc;
+}
+
+.admin-form-input:focus,
+.admin-form-textarea:focus {
+    outline: none;
+    border-color: #3b034e;
+    background: #fff;
+}
+
+.admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: #3b034e;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary:hover { background: #5a0b72; }
+.btn-secondary:hover { background: #e2e8f0; }
+
+/* Admin Badge in List */
+.admin-badge {
+    background-color: #3b034e;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+}

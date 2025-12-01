@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { FileText, BarChart2, Flag, Users, ArrowRight } from "../../assets/icons";
+import { FileText, BarChart2, Flag, Users,Bell, ArrowRight } from "../../assets/icons";
 import StatCard from "../StatCard";
 import ContentCard from "../ContentCard";
 import { FormButton } from "../FormControls";
 
-const DashboardHome = ({ user, setCurrentSection }) => {
+  const DashboardHome = ({ user, setCurrentSection }) => {
   const [loggedInUser, setLoggedInUser] = useState("");
   const [petitions, setPetitions] = useState([]);
 
+  const recentActivities = [
+    { id: 1, type: "Petition Signed", description: "You signed 'Improve Public Park Safety'", time: "2 hours ago" },
+    { id: 2, type: "Poll Voted", description: "You voted on 'New City Budget Priorities'", time: "1 day ago" },
+    { id: 3, type: "Report Filed", description: "Report for 'Illegal Dumping' has been reviewed", time: "3 days ago" },
+  ];
 
   useEffect(() => {
     setLoggedInUser(localStorage.getItem("loggedInUser"));
@@ -109,30 +114,59 @@ const DashboardHome = ({ user, setCurrentSection }) => {
             </ul>
           </ContentCard>
         </div>
-
-        {/* ✅ Quick Actions */}
+        
+        {/* Activity Feed + Quick Actions */}
         <div className="main-content-col-right">
-          <ContentCard title="Quick Actions" icon={ArrowRight}>
-            <div className="quick-actions-list">
-              <FormButton
-                variant="primary"
-                onClick={() => {
-                  // Save flag and go to Petition section
-                  localStorage.setItem("openCreatePetition", "true");
-                  setCurrentSection("petitions");
-                }}
-              >
-                <FileText size={18} /> Start a New Petition
-              </FormButton>
-
-              <FormButton variant="secondary">
-                <BarChart2 size={18} /> Create a New Poll
-              </FormButton>
-              <FormButton variant="secondary">
-                <Flag size={18} /> File a New Report
-              </FormButton>
-            </div>
+          <ContentCard 
+            title="Your Recent Activity" 
+            icon={Bell}
+            actions={<button className="view-all-button">View All</button>}
+          >
+            <ul className="activity-list">
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity) => (
+                  <li key={activity.id} className="activity-list-item">
+                    <div className="activity-icon-wrapper">
+                      {activity.type === "Petition Signed" && <FileText className="activity-icon activity-icon-blue" />}
+                      {activity.type === "Poll Voted" && <BarChart2 className="activity-icon activity-icon-green" />}
+                      {activity.type === "Report Filed" && <Flag className="activity-icon activity-icon-red" />}
+                    </div>
+                    <div>
+                      <p className="activity-description">{activity.description}</p>
+                      <p className="activity-time">{activity.time}</p>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <p className="activity-empty-text">No recent activity.</p>
+              )}
+            </ul>
           </ContentCard>
+        
+          {/* ✅ Quick Actions */}
+          <div className="main-content-col-right">
+            <ContentCard title="Quick Actions" icon={ArrowRight}>
+              <div className="quick-actions-list">
+                <FormButton
+                  variant="primary"
+                  onClick={() => {
+                    // Save flag and go to Petition section
+                    localStorage.setItem("openCreatePetition", "true");
+                    setCurrentSection("petitions");
+                  }}
+                >
+                  <FileText size={18} /> Start a New Petition
+                </FormButton>
+
+                <FormButton variant="secondary">
+                  <BarChart2 size={18} /> Create a New Poll
+                </FormButton>
+                <FormButton variant="secondary">
+                  <Flag size={18} /> File a New Report
+                </FormButton>
+              </div>
+            </ContentCard>
+          </div>
         </div>
       </div>
     </div>

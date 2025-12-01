@@ -3,13 +3,21 @@ import DashboardHeader from "../pages/DashboardHeader";
 import DashboardSidebar from "../pages/DashboardSidebar";
 import AdminHome from "./sections/AdminHome";
 import ReviewPetitions from "./sections/AdminPetitionsSection";
-import AdminPollsSection from "./sections/AdminPollsSection"; // Import the new section
+import AdminPollsSection from "./sections/AdminPollsSection"; 
+import SettingsSection from "../pages/sections/SettingsSection";
+import AdminCommunitySection from "./sections/AdminCommunitySection";
+import AdminFeedbackSection from "./sections/AdminFeedbackSection";
+import ReportsSection from "../pages/sections/ReportsSection";
+import AdminHelpSection from "./sections/AdminHelpSection";
 
 import {
   FileText,
   BarChart2,
   Settings,
   LayoutDashboard,
+  Users,
+  MessageSquare,
+  Flag,
 } from "../assets/icons";
 
 // import "../styles/AdminPolls.css";
@@ -20,7 +28,9 @@ const AdminDashboard = ({ user }) => {
     { id: "home", label: "Dashboard", icon: LayoutDashboard },
     { id: "review", label: "Manage Petitions", icon: FileText },
     { id: "polls", label: "Manage Polls", icon: BarChart2 }, // Added Polls
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "community", label: "Manage Community", icon: Users},
+    { id: "feedback", label: "Manage Feedback", icon: MessageSquare },
+    { id: "reports", label: "Reports", icon: Flag },
   ];
 
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -42,8 +52,16 @@ const AdminDashboard = ({ user }) => {
         return <ReviewPetitions />;
       case "polls":
         return <AdminPollsSection />; // Added Case
+      case "community":
+        return <AdminCommunitySection />; 
+      case "feedback":
+        return <AdminFeedbackSection />; 
+      case "reports":
+        return <ReportsSection />; 
       case "settings":
-         return <div className="dashboard-section-placeholder"><h3>Settings</h3><p>System configuration coming soon.</p></div>;
+         return <SettingsSection user={user} />;
+      case "help":
+         return <AdminHelpSection user={user} />;
       default:
         return <AdminHome />;
     }

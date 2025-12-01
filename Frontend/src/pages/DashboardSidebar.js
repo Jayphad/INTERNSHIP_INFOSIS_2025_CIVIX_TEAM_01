@@ -36,10 +36,16 @@ const DashboardSidebar = ({navItems, isOpen, setCurrentSection, currentSection }
       </ul>
 
       <div className="sidebar-footer">
-        <button>
+        <button
+          onClick={() => setCurrentSection("settings")}
+          className={currentSection === "settings" ? "active" : ""}
+        >
           <Settings /> Settings
         </button>
-        <button>
+        <button
+          onClick={() => setCurrentSection("help")}
+          className={currentSection === "help" ? "active" : ""}
+        >
           <HelpCircle /> Help
         </button>
       </div>
