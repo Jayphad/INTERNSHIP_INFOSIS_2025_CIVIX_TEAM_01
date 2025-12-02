@@ -7,6 +7,9 @@ require('./Models/db');
 const pollRoutes = require('./Routes/PollRouter');
 const reportsRouter = require('./Routes/ReportRouter');
 const feedbackRouter = require('./Routes/FeedbackRouter');
+const communityRouter = require('./Routes/CommunityRouter');
+
+
 
 const app = express();
 
@@ -50,7 +53,8 @@ app.use('/uploads', express.static('uploads'));
 //for feedback
 app.use('/feedback', feedbackRouter);
 
-
+//for community posts
+app.use('/community', communityRouter);
 
 // ✅ 5. Start Server
 const PORT = process.env.PORT || 8080;

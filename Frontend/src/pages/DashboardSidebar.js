@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
 } from "../assets/icons";
 import "../styles/Dashboard.css";
+import logo from "../assets/logo.png";
 
 const DashboardSidebar = ({navItems, isOpen, setCurrentSection, currentSection }) => {
 
@@ -16,8 +17,9 @@ const DashboardSidebar = ({navItems, isOpen, setCurrentSection, currentSection }
     <aside className={`sidebar-container ${isOpen ? "open" : ""}`}>
       <div className="sidebar-mobile-header">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <LayoutDashboard className="sidebar-logo" />
-          <h2 className="sidebar-title">Civix</h2>
+          {/* <LayoutDashboard className="sidebar-logo" /> */}
+          <img src={logo} alt="Civix Logo" className="sidebar-logo" />
+          {/* <h2 className="sidebar-title">Civix</h2> */}
         </div>
       </div>
 

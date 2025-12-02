@@ -16,36 +16,56 @@ const AdminFeedbackSection = () => {
     const [selectedFeedback, setSelectedFeedback] = useState(null);
 
     // Load data from LocalStorage on mount
-    useEffect(() => {
-        const storedData = localStorage.getItem('civix_feedback_data');
-        if (storedData) {
-            setFeedbacks(JSON.parse(storedData));
-        }
-    }, []);
+   useEffect(() => {
+    fetch("http://localhost:8080/feedback/all")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setFeedbacks(data.feedbacks);
+            }
+        })
+        .catch(err => console.error("Error loading feedback:", err));
+}, []);
+
 
     // Helper: Delete Feedback
-    const handleDelete = (id) => {
-        if(window.confirm("Are you sure you want to delete this feedback?")) {
-            const updated = feedbacks.filter(f => f.id !== id);
+  const handleDelete = (id) => {
+    if(!window.confirm("Delete this feedback?")) return;
+
+    fetch(`http://localhost:8080/feedback/${id}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const updated = feedbacks.filter(f => f._id !== id);
             setFeedbacks(updated);
-            localStorage.setItem('civix_feedback_data', JSON.stringify(updated));
-            if (selectedFeedback?.id === id) setSelectedFeedback(null);
+            if (selectedFeedback?._id === id) setSelectedFeedback(null);
         }
-    };
+    });
+};
+
 
     // Helper: Mark as Read/Unread
-    const toggleReadStatus = (id) => {
-        const updated = feedbacks.map(f => 
-            f.id === id ? { ...f, status: f.status === 'unread' ? 'read' : 'unread' } : f
-        );
-        setFeedbacks(updated);
-        localStorage.setItem('civix_feedback_data', JSON.stringify(updated));
-        
-        // Update selected view if open
-        if (selectedFeedback?.id === id) {
-            setSelectedFeedback(prev => ({ ...prev, status: prev.status === 'unread' ? 'read' : 'unread' }));
+   const toggleReadStatus = (id) => {
+    fetch(`http://localhost:8080/feedback/${id}/toggle`, {
+        method: "PATCH"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const updated = feedbacks.map(f =>
+                f._id === id ? { ...f, status: data.status } : f
+            );
+            setFeedbacks(updated);
+
+            if (selectedFeedback?._id === id) {
+                setSelectedFeedback(prev => ({ ...prev, status: data.status }));
+            }
         }
-    };
+    });
+};
+
 
     // Filter Logic
     const filteredFeedbacks = feedbacks.filter(item => {
@@ -104,15 +124,16 @@ const AdminFeedbackSection = () => {
                         ) : (
                             filteredFeedbacks.map(item => (
                                 <div 
-                                    key={item.id} 
-                                    className={`feedback-item-card ${selectedFeedback?.id === item.id ? 'active' : ''} ${item.status}`}
-                                    onClick={() => setSelectedFeedback(item)}
+                                   key={item._id}
+                                            onClick={() => setSelectedFeedback(item)}
+                                            className={`feedback-item-card ${selectedFeedback?._id === item._id ? 'active' : ''}`}
+
                                 >
                                     <div className="card-top">
                                         <span className={`badge ${item.feedbackType}`}>{item.feedbackType.replace('_', ' ')}</span>
                                         <span className="card-date">{new Date(item.timestamp).toLocaleDateString()}</span>
                                     </div>
-                                    <h4 className="card-subject">{item.category}</h4>
+                                        <h4 className="card-subject">{item.category || "No Category"}</h4>
                                     <p className="card-snippet">{item.message.substring(0, 50)}...</p>
                                     <div className="card-footer">
                                         <small>{item.name}</small>
@@ -140,14 +161,14 @@ const AdminFeedbackSection = () => {
                                 <div className="detail-actions">
                                     <button 
                                         className="action-btn" 
-                                        onClick={() => toggleReadStatus(selectedFeedback.id)}
+                                        onClick={() => toggleReadStatus(selectedFeedback._id)}
                                         title={selectedFeedback.status === 'unread' ? "Mark as Read" : "Mark as Unread"}
                                     >
                                         <CheckCircle size={18} color={selectedFeedback.status === 'read' ? 'green' : '#666'} />
                                     </button>
                                     <button 
                                         className="action-btn delete" 
-                                        onClick={() => handleDelete(selectedFeedback.id)}
+                                        onClick={() => handleDelete(selectedFeedback._id)}
                                         title="Delete"
                                     >
                                         <Trash2 size={18} />
@@ -164,11 +185,20 @@ const AdminFeedbackSection = () => {
                                     <p>{selectedFeedback.email}</p>
                                     <p className="user-type">User Account: {selectedFeedback.user}</p>
                                 </div>
-                                <div className="detail-rating">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} size={16} fill={i < selectedFeedback.rating ? "#FFD700" : "#eee"} stroke="none" />
-                                    ))}
+                               <div className="detail-rating">
+                                    {(() => {
+                                        const ratingValue = selectedFeedback?.rating || 0;
+                                        return [...Array(5)].map((_, i) => (
+                                            <Star 
+                                                key={i} 
+                                                size={16} 
+                                                fill={i < ratingValue ? "#FFD700" : "#eee"} 
+                                                stroke="none" 
+                                            />
+                                        ));
+                                    })()}
                                 </div>
+
                             </div>
 
                             <div className="detail-body">

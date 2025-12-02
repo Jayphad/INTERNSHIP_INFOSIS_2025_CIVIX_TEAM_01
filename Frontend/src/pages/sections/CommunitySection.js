@@ -1,359 +1,271 @@
-import React, { useState, useEffect } from 'react';
-import { FormButton } from '../FormControls';
-import { Users, MessageSquare, Calendar, Plus, MapPin, Heart, Send } from '../../assets/icons';
-import '../../styles/Community.css';
-import Modal from './Modal'; // Re-use your Modal component
-import '../../styles/Modal.css';
-
-// --- Mock Data ---
-const mockDiscussions = [
-  {
-    id: 1,
-    author: "Sarah Jenkins",
-    avatar: "SJ",
-    time: "2 hours ago",
-    title: "Volunteers needed for park cleanup this Saturday!",
-    content: "Hi everyone! We're organizing a cleanup at Central Park this weekend. We have bags and gloves, just bring yourself and some water. Meeting at the north gate at 9 AM.",
-    likes: 12,
-    comments: 4,
-    category: "Events"
-  },
-  {
-    id: 2,
-    author: "Mike Ross",
-    avatar: "MR",
-    time: "5 hours ago",
-    title: "Thoughts on the new bike lane proposal?",
-    content: "I've been reading through the city's proposal for the new bike lanes on Main St. While I support it, I'm concerned about the reduction in parking spots for local businesses. What do you all think?",
-    likes: 8,
-    comments: 15,
-    category: "Policy"
-  },
-  {
-    id: 3,
-    author: "Elena Rodriguez",
-    avatar: "ER",
-    time: "1 day ago",
-    title: "Local Farmer's Market - Vendor List",
-    content: "Does anyone have a list of vendors for this week's market? I'm looking for that specific honey stand that was there last month.",
-    likes: 5,
-    comments: 2,
-    category: "General"
-  }
-];
-
-const mockEvents = [
-  {
-    id: 1,
-    title: "Town Hall Meeting",
-    date: "Nov 15, 6:00 PM",
-    location: "City Hall, Room 204",
-    attendees: 45
-  },
-  {
-    id: 2,
-    title: "Community Garden Workshop",
-    date: "Nov 18, 10:00 AM",
-    location: "Northside Community Garden",
-    attendees: 12
-  }
-];
-
-// --- Components ---
+import React, { useState, useEffect } from "react";
+import { FormButton } from "../FormControls";
+import { MessageSquare, Calendar, Plus, MapPin, Heart, Send } from "../../assets/icons";
+import "../../styles/Community.css";
+import Modal from "./Modal";
+import "../../styles/Modal.css";
 
 const DiscussionCard = ({ discussion, onLike, onComment }) => {
   const [showInput, setShowInput] = useState(false);
   const [text, setText] = useState("");
 
   const handleSend = (e) => {
-      e.preventDefault();
-      if(text.trim()) {
-          onComment(discussion.id, text);
-          setText("");
-      }
+    e.preventDefault();
+    if (text.trim()) {
+      onComment(discussion._id, text);
+      setText("");
+    }
   };
+console.log(discussion._id, discussion.likes, discussion.likedByMe);
+console.log(discussion._id, "likedByMe:", discussion.likedByMe);
 
-  // Safe check for comment count
-  const commentCount = discussion.commentsList ? discussion.commentsList.length : (discussion.comments || 0);
+
+// console.log("Discussion ID:", discussion._id, "Likes:", discussion.likes, "isLiked:", isLiked, "likedByMe:", discussion.likedByMe);
+
 
   return (
     <div className="discussion-card">
       <div className="discussion-header">
         <div className="discussion-author-info">
-          <div className="author-avatar">{discussion.avatar}</div>
+          <div className="author-avatar">{discussion.authorAvatar}</div>
           <div>
-            <h4 className="author-name">{discussion.author}</h4>
-            <span className="post-time">{discussion.time} • {discussion.category}</span>
+            <h4 className="author-name">{discussion.authorName}</h4>
+            <span className="post-time">
+              {new Date(discussion.createdAt).toLocaleString()} • {discussion.category}
+            </span>
           </div>
         </div>
       </div>
-      
+
       <div className="discussion-content">
         <h3 className="discussion-title">{discussion.title}</h3>
         <p className="discussion-text">{discussion.content}</p>
       </div>
-      
+
       <div className="discussion-footer">
-        {/* LIKE BUTTON */}
-        <button 
-          className={`discussion-action-btn ${discussion.likedByMe ? 'active-heart' : ''}`} 
-          onClick={() => onLike(discussion.id)}
-        >
-          <Heart size={16} className={discussion.likedByMe ? 'active-heart' : ''} /> 
-          {discussion.likes} Likes
+        <button className="discussion-action-btn" onClick={() => onLike(discussion._id)}>
+      <Heart
+          size={16}
+          color={discussion.likedByMe ? "red" : "gray"}
+          fill={discussion.likedByMe ? "red" : "none"}
+        />
+          &nbsp; {discussion.likes.length} Likes
         </button>
-        
-        {/* COMMENT TOGGLE BUTTON */}
+
+
         <button className="discussion-action-btn" onClick={() => setShowInput(!showInput)}>
-          <MessageSquare size={16} /> {commentCount} Comments
+          <MessageSquare size={16} /> {discussion.comments.length} Comments
         </button>
       </div>
 
-      {/* NEW: COMMENT SECTION (Hidden by default) */}
       {showInput && (
-          <div className="comment-input-section">
-              {/* List existing comments */}
-              <div className="comments-display">
-                  {discussion.commentsList && discussion.commentsList.map((c, i) => (
-                      <div key={i} className="single-comment">
-                        <strong>{c.author}:</strong> {c.text}
-                      </div>
-                  ))}
+        <div className="comment-input-section">
+          <div className="comments-display">
+            {discussion.comments.map((c, i) => (
+              <div key={i} className="single-comment">
+                <strong>{c.author}:</strong> {c.text}
               </div>
-              
-              {/* Input Form */}
-              <form onSubmit={handleSend} className="comment-input-wrapper">
-                  <input 
-                    className="comment-input" 
-                    value={text} 
-                    onChange={(e)=>setText(e.target.value)} 
-                    placeholder="Write a comment..." 
-                  />
-                  <button type="submit" className="btn-send-comment">
-                    <Send size={14}/>
-                  </button>
-              </form>
+            ))}
           </div>
+
+          <form onSubmit={handleSend} className="comment-input-wrapper">
+            <input
+              className="comment-input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Write a comment..."
+            />
+            <button type="submit" className="btn-send-comment">
+              <Send size={14} />
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );
 };
 
-const EventCard = ({ event }) => (
-  <div className="event-card">
-    <div className="event-date-badge">
-      <Calendar size={20} />
-    </div>
-    <div className="event-details">
-      <h4 className="event-title">{event.title}</h4>
-      <p className="event-time">{event.date}</p>
-      <p className="event-location"><MapPin size={14} /> {event.location}</p>
-    </div>
-  </div>
-);
-
 const CreatePostForm = ({ onCancel, onPost }) => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [category, setCategory] = useState('General');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState("General");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Simulate posting
-        onPost({
-            id: Math.random(),
-            author: "Demo User",
-            avatar: "DU",
-            time: "Just now",
-            title,
-            content,
-            likes: 0,
-            commentsList: [], // Initialize as empty array
-            category
-          });
-      };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onPost({ title, content, category });
+  };
 
-    return (
-        <form onSubmit={handleSubmit} className="petition-create-form petition-modal-form">
-            <div className="form-field-group">
-                <label>Title</label>
-                <input 
-                    type="text" 
-                    placeholder="What's on your mind?" 
-                    value={title} 
-                    onChange={(e) => setTitle(e.target.value)}
-                    required 
-                />
-            </div>
-            <div className="form-field-group">
-                <label>Category</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                    <option>General</option>
-                    <option>Events</option>
-                    <option>Policy</option>
-                    <option>Safety</option>
-                </select>
-            </div>
-            <div className="form-field-group">
-                <label>Content</label>
-                <textarea 
-                    rows="4" 
-                    placeholder="Share details..." 
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    required
-                />
-            </div>
-            <div className="form-action-buttons">
-                <FormButton type="button" variant="secondary" onClick={onCancel}>Cancel</FormButton>
-                <FormButton type="submit" variant="primary">Post</FormButton>
-            </div>
-        </form>
-    );
-}
+  return (
+    <form onSubmit={handleSubmit} className="petition-create-form petition-modal-form">
+      <div className="form-field-group">
+        <label>Title</label>
+        <input
+          type="text"
+          placeholder="What's on your mind?"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="form-field-group">
+        <label>Category</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option>General</option>
+          <option>Events</option>
+          <option>Policy</option>
+          <option>Safety</option>
+        </select>
+      </div>
+
+      <div className="form-field-group">
+        <label>Content</label>
+        <textarea
+          rows="4"
+          placeholder="Share details..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="form-action-buttons">
+        <FormButton type="button" variant="secondary" onClick={onCancel}>
+          Cancel
+        </FormButton>
+        <FormButton type="submit" variant="primary">
+          Post
+        </FormButton>
+      </div>
+    </form>
+  );
+};
 
 const CommunitySection = () => {
   const [discussions, setDiscussions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // CHANGE 1: Load data from LocalStorage on load
-  useEffect(() => {
-    const saved = localStorage.getItem('civix_community_posts');
-    if (saved) {
-      setDiscussions(JSON.parse(saved));
-    } else {
-      setDiscussions(mockDiscussions); // Use default if empty
-      localStorage.setItem('civix_community_posts', JSON.stringify(mockDiscussions));
+  const token = localStorage.getItem("token");
+
+useEffect(() => {
+  const fetchPosts = async () => {
+    const res = await fetch("http://localhost:8080/community/all", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    const data = await res.json();
+    if (data.success) {
+      const userId = localStorage.getItem("id");
+      const postsWithLikedByMe = data.posts.map(post => ({
+        ...post,
+        likedByMe: post.likes.map(id => id.toString()).includes(userId) // ✅ convert ObjectIds to string
+      }));
+      setDiscussions(postsWithLikedByMe);
     }
-  }, []);
-
-  const handlePost = (newPost) => {
-      const updatedList = [newPost, ...discussions];
-      setDiscussions(updatedList);
-      localStorage.setItem('civix_community_posts', JSON.stringify(updatedList)); // CHANGE 2: Save to storage
-      setIsModalOpen(false);
   };
+  fetchPosts();
+}, []);
 
-  // Helper to save to state and storage
-  const saveData = (updatedData) => {
-      setDiscussions(updatedData);
-      localStorage.setItem('civix_community_posts', JSON.stringify(updatedData));
-  };
 
-  // 1. Handle Like Logic
-  const handleLike = (id) => {
-    const updated = discussions.map(post => {
-        if (post.id === id) {
-            const isLiked = post.likedByMe;
-            return { 
-                ...post, 
-                likes: isLiked ? post.likes - 1 : post.likes + 1, // Decrease if unliking, Increase if liking
-                likedByMe: !isLiked 
-            };
-        }
-        return post;
+
+  const handlePost = async (postData) => {
+    const res = await fetch("http://localhost:8080/community/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(postData),
     });
-    saveData(updated);
+
+    const data = await res.json();
+
+    if (data.success) {
+          setDiscussions((prev) => [data.post, ...prev]);  
+          setIsModalOpen(false);
+    }
+  };
+const handleLike = async (postId) => {
+  const res = await fetch(`http://localhost:8080/community/like/${postId}`, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token },
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    const userId = localStorage.getItem("id");
+    setDiscussions(prev =>
+      prev.map(post =>
+        post._id === postId
+          ? { 
+              ...post, 
+              likes: data.likes,
+              likedByMe: data.likes.map(id => id.toString()).includes(userId)
+            }
+          : post
+      )
+    );
+  }
+};
+
+
+
+
+  const handleComment = async (postId, text) => {
+    const res = await fetch(`http://localhost:8080/community/comment/${postId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setDiscussions((prev) =>
+        prev.map((post) =>
+          post._id === postId ? { ...post, comments: data.comments } : post
+        )
+      );
+    }
   };
 
-  // 2. Handle Comment Logic
-  const handleComment = (id, text) => {
-    const updated = discussions.map(post => {
-        if (post.id === id) {
-            const list = post.commentsList || [];
-            return { 
-                ...post, 
-                commentsList: [...list, { author: "You", text: text }] 
-            };
-        }
-        return post;
-    });
-    saveData(updated);
-  };
-  
   return (
     <div className="dashboard-section-placeholder">
       <div className="reports-section-header">
         <div>
           <h2 className="reports-section-title">Community</h2>
-          <p className="reports-section-subtitle">Connect with neighbors, join discussions, and find local events.</p>
+          <p className="reports-section-subtitle">
+            Connect with neighbors, join discussions, and find local events.
+          </p>
         </div>
         <div>
-          <FormButton 
-              variant="primary" 
-              className="create-petition-btn"
-              onClick={() => setIsModalOpen(true)}
-          >
+          <FormButton variant="primary" onClick={() => setIsModalOpen(true)}>
             <Plus size={18} /> New Post
           </FormButton>
         </div>
       </div>
 
-      <div className="community-layout">
-        {/* Main Feed */}
-        <div className="community-feed">
-          <h3 className="section-heading">Recent Discussions</h3>
-          <div className="discussions-list">
-            {discussions.map(discussion => (
-              <DiscussionCard 
-              key={discussion.id} 
-              discussion={discussion} 
-              onLike={handleLike} 
+      <div className="community-feed">
+        <h3 className="section-heading">Recent Discussions</h3>
+
+        <div className="discussions-list">
+          {discussions.map((discussion) => (
+            <DiscussionCard
+              key={discussion._id}
+              discussion={discussion}
+              onLike={handleLike}
               onComment={handleComment}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Sidebar: Events & Groups */}
-        <div className="community-sidebar">
-          <div className="sidebar-widget">
-            <h3 className="widget-heading">Upcoming Events</h3>
-            <div className="events-list">
-              {mockEvents.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-            <button className="view-all-link">View Calendar →</button>
-          </div>
-
-          <div className="sidebar-widget">
-            <h3 className="widget-heading">Active Groups</h3>
-            <ul className="groups-list">
-               <li>
-                  <span className="group-icon">🌱</span>
-                  <div className="group-info">
-                     <strong>Green City Initiative</strong>
-                     <span>245 members</span>
-                  </div>
-               </li>
-               <li>
-                  <span className="group-icon">🚴</span>
-                  <div className="group-info">
-                     <strong>Cyclists of San Diego</strong>
-                     <span>128 members</span>
-                  </div>
-               </li>
-               <li>
-                  <span className="group-icon">📚</span>
-                  <div className="group-info">
-                     <strong>Local Book Club</strong>
-                     <span>56 members</span>
-                  </div>
-               </li>
-            </ul>
-          </div>
+            />
+          ))}
         </div>
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
-        title="Create a New Post"
-      >
-          <CreatePostForm onCancel={() => setIsModalOpen(false)} onPost={handlePost} />
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create a New Post">
+        <CreatePostForm onCancel={() => setIsModalOpen(false)} onPost={handlePost} />
       </Modal>
-
     </div>
   );
 };

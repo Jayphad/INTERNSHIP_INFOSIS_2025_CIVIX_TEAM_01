@@ -28,6 +28,19 @@ const ReportStatCard = ({ title, value, icon: Icon, colorClass }) => (
 // =========================
 const PieChart = ({ data, colors }) => {
   const total = data.reduce((a, b) => a + b, 0);
+
+  // 🔥 Chrome Fix
+  if (!data.length || total === 0) {
+    return (
+      <div className="pie-chart-container">
+        <div
+          className="pie-chart"
+          style={{ background: "#e5e7eb" }} // light gray
+        />
+      </div>
+    );
+  }
+
   let currentAngle = 0;
 
   const gradientParts = data.map((val, i) => {
@@ -39,10 +52,14 @@ const PieChart = ({ data, colors }) => {
 
   return (
     <div className="pie-chart-container">
-      <div className="pie-chart" style={{ background: `conic-gradient(${gradientParts.join(", ")})` }} />
+      <div
+        className="pie-chart"
+        style={{ background: `conic-gradient(${gradientParts.join(", ")})` }}
+      />
     </div>
   );
 };
+
 
 // =========================
 // CHART CARD (STATUS + DISTRIBUTION)
@@ -126,11 +143,12 @@ const ReportsSection = () => {
 
 
   // FETCH BACKEND REPORT DATA
- useEffect(() => {
+useEffect(() => {
   const fetchReports = async () => {
     if (activeTab === "overview") {
       try {
         const res = await axios.get(`${API_URL}/reports/overview`);
+        console.log("🔥 FRONTEND RECEIVED:", res.data);  // ADD THIS
         setReportData(res.data.data);
       } catch (err) {
         console.error("Report fetch error:", err);
@@ -148,13 +166,7 @@ const ReportsSection = () => {
   if (loading) return <p>Loading analytics...</p>;
   if (!reportData) return <p>Error loading reports.</p>;
 
-  // ========== Extracting values from backend ==========
-  // const totals = reportData.totals;
-  // const petitionStatus = reportData.petitions.status;
-  // const petitionDistribution = reportData.petitions.byCategory;
-
-  // const pollStatus = reportData.polls.status;
-  // const pollLocationDist = reportData.polls.byLocation;
+ 
 
   // ========== Extracting values from backend ==========
   // FIX: Added optional chaining (?.) and fallbacks (|| {}) to prevent crashes

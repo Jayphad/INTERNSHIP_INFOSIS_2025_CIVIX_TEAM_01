@@ -92,81 +92,144 @@ exports.getOverview = async (req, res) => {
   }
 };
 
-
 exports.getMyActivity = async (req, res) => {
   try {
-     const userId = req.user?.id || req.user?._id || req.params.userId;
-    // supports JWT auth OR param-based route
+    // ----------------------------------------
+    // 1) Extract User ID (JWT)
+    // ----------------------------------------
+    const userId = req.user?.id || req.user?._id;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID missing" });
+      return res.status(400).json({
+        success: false,
+        message: "User ID missing"
+      });
     }
 
-    const objectId = new mongoose.Types.ObjectId(userId);
+    // Convert to ObjectId for matching
+    let objectId;
+    try {
+      objectId = new mongoose.Types.ObjectId(userId);
+    } catch (e) {
+      console.log("⚠ Invalid ObjectId, using string match fallback");
+      objectId = userId; // fallback if wrong format
+    }
 
     // ----------------------------------------
-    // 1) Petition Status for THIS USER
+    // 2) Petitions created by user
     // ----------------------------------------
     const userPetitionStatusAgg = await Petition.aggregate([
-      { $match: { createdBy: objectId } },
+      {
+        $match: {
+          $or: [
+            { createdBy: objectId },       // match ObjectId
+            { createdBy: userId }          // match string
+          ]
+        }
+      },
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
-    // ----------------------------------------
-    // 2) Petition Categories for THIS USER
-    // ----------------------------------------
     const userPetitionCategoryAgg = await Petition.aggregate([
-      { $match: { createdBy: objectId } },
+      {
+        $match: {
+          $or: [
+            { createdBy: objectId },
+            { createdBy: userId }
+          ]
+        }
+      },
       { $group: { _id: "$category", count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
-    // ----------------------------------------
-    // 3) Signatures received for user petitions
-    // ----------------------------------------
     const userPetitionSignaturesAgg = await Petition.aggregate([
-      { $match: { createdBy: objectId } },
+      {
+        $match: {
+          $or: [
+            { createdBy: objectId },
+            { createdBy: userId }
+          ]
+        }
+      },
       { $project: { sigCount: { $size: { $ifNull: ["$signatures", []] } } } },
       { $group: { _id: null, totalSignatures: { $sum: "$sigCount" } } }
     ]);
 
     const userTotalSignatures =
-      (userPetitionSignaturesAgg[0] && userPetitionSignaturesAgg[0].totalSignatures) || 0;
+      (userPetitionSignaturesAgg[0]?.totalSignatures) || 0;
 
     // ----------------------------------------
-    // 4) Polls created by this user (per-status)
+    // 3) Polls created by user
     // ----------------------------------------
     const userPollStatusAgg = await Poll.aggregate([
-      { $match: { createdBy: objectId } },
-      { $group: { _id: "$status", count: { $sum: 1 } } }
-    ]);
+        { 
+          $match: { 
+            $or: [
+              { createdBy: objectId },
+              { authorId: objectId.toString() }
+            ] 
+          } 
+        },
+        { $group: { _id: "$status", count: { $sum: 1 } } }
+      ]);
 
-    // ----------------------------------------
-    // 5) Votes on user's polls
-    // ----------------------------------------
     const userPollVotesAgg = await Poll.aggregate([
-      { $match: { createdBy: objectId } },
-      { $group: { _id: null, totalVotes: { $sum: { $ifNull: ["$totalVotes", 0] } } } }
-    ]);
+  { 
+    $match: {
+      $or: [
+        { createdBy: objectId },
+        { authorId: objectId.toString() }
+      ]
+    }
+  },
+  { $group: { _id: null, totalVotes: { $sum: { $ifNull: ["$totalVotes", 0] } } } }
+]);
+
 
     const userTotalVotes =
-      (userPollVotesAgg[0] && userPollVotesAgg[0].totalVotes) || 0;
+      (userPollVotesAgg[0]?.totalVotes) || 0;
+
+    const userPollLocationAgg = await Poll.aggregate([
+  { 
+    $match: {
+      $or: [
+        { createdBy: objectId },
+        { authorId: objectId.toString() }
+      ]
+    }
+  },
+  { $group: { _id: "$location", count: { $sum: 1 } } },
+  { $sort: { count: -1 } },
+  { $limit: 20 }
+]);
+
 
     // ----------------------------------------
-    // 6) Totals
+    // 4) Totals
     // ----------------------------------------
-    const totalMyPetitions = await Petition.countDocuments({ createdBy: objectId });
-    const totalMyPolls = await Poll.countDocuments({ createdBy: objectId });
+    const totalMyPetitions = await Petition.countDocuments({
+      $or: [{ 
+        createdBy: objectId },
+         { createdBy: userId }]
+    });
+
+    const totalMyPolls = await Poll.countDocuments({
+  $or: [
+    { createdBy: objectId },
+    { authorId: objectId.toString() }
+  ]
+});
+
 
     const myActiveEngagement = userTotalSignatures + userTotalVotes;
 
     // ----------------------------------------
-    // 7) Convert agg to map
+    // 5) Convert aggregation arrays to maps
     // ----------------------------------------
-    const aggToMap = (arr) =>
+    const aggToMap = arr =>
       arr.reduce((acc, cur) => {
-        const key = (cur._id === null || cur._id === undefined) ? "unknown" : cur._id;
-        acc[key] = cur.count;
+        acc[cur._id || "unknown"] = cur.count;
         return acc;
       }, {});
 
@@ -174,7 +237,7 @@ exports.getMyActivity = async (req, res) => {
     const pollStatusMap = aggToMap(userPollStatusAgg);
 
     // ----------------------------------------
-    // 8) Prepare final formatted response
+    // 6) Send final response
     // ----------------------------------------
     return res.json({
       success: true,
@@ -192,7 +255,11 @@ exports.getMyActivity = async (req, res) => {
           }))
         },
         polls: {
-          status: pollStatusMap
+          status: pollStatusMap,
+          byLocation: userPollLocationAgg.map(x => ({
+            location: x._id,
+            count: x.count
+          }))
         },
         totalsDetail: {
           totalSignatures: userTotalSignatures,
@@ -203,6 +270,9 @@ exports.getMyActivity = async (req, res) => {
     });
   } catch (err) {
     console.error("ReportsController.getMyActivity error:", err);
-    return res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
