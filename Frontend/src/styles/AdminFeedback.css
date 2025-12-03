@@ -117,3 +117,96 @@
 .detail-attachments { margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }
 .attachment-item { background: #f0f0f0; padding: 8px; margin-bottom: 5px; border-radius: 4px; font-size: 0.9rem; }
 .empty-selection { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #999; }
+
+
+/* ============================================
+   RESPONSIVENESS FOR FEEDBACK ADMIN SECTION
+   ============================================ */
+@media (max-width: 767px) {
+
+  .feedback-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .feedback-main-content {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .feedback-list-panel,
+  .feedback-detail-panel {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .feedback-detail-panel {
+    margin-top: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+/* ----------- LARGE MOBILE (≤ 480px) ----------- */
+@media (max-width: 480px) {
+
+
+  .feedback-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .feedback-item-card {
+    padding: 12px;
+  }
+
+  .card-snippet {
+    font-size: 0.8rem;
+  }
+
+  .detail-user-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ----------- SMALL MOBILES (≤ 375px) ----------- */
+@media (max-width: 375px) {
+
+
+  .feedback-stats-row {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .stat-card {
+    text-align: center;
+  }
+
+  .list-filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-user-info {
+    gap: 10px;
+  }
+
+  .feedback-item-card {
+    padding: 10px;
+  }
+
+  .card-subject {
+    font-size: 0.9rem;
+  }
+
+  .message-box {
+    font-size: 0.9rem;
+  }
+}

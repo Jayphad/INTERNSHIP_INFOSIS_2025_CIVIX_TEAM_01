@@ -115,7 +115,8 @@
   background: white;
   border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
+  /* overflow: hidden; */
+  overflow-x: auto !important;
 }
 
 .admin-table {
@@ -123,6 +124,7 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 0.9rem;
+  min-width: 800px; 
 }
 
 .admin-table th {
@@ -434,4 +436,51 @@
 .detail-value {
   font-size: 1rem;
   color: #0f172a;
+}
+
+
+/* -------------------------------------
+   ADMIN PETITIONS HEADER RESPONSIVENESS
+-------------------------------------- */
+
+@media (max-width: 767px) {
+
+  .admin-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-page-title {
+    font-size: 1.4rem;
+  }
+
+  .admin-page-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .primary-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Very small devices (480px and below) */
+@media (max-width: 480px) {
+
+  .admin-page-title {
+    font-size: 1.2rem;
+  }
+
+  .admin-page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .primary-btn {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.9rem;
+  }
 }

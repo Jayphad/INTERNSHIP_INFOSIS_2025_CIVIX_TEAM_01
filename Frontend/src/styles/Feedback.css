@@ -208,3 +208,69 @@
   font-size: 0.75rem;
   color: #94a3b8;
 }
+
+/* ---------------------------------------
+   SMALL DEVICES RESPONSIVE FIXES
+----------------------------------------*/
+
+@media(max-width:768px){
+    .dashboard-section-subtitle,
+    .feedback-form-container label,
+  .feedback-input,
+  .feedback-select,
+  .feedback-textarea {
+      font-size: 0.8rem;
+  }
+}
+@media (max-width: 480px) {
+  .feedback-type-group {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+  }
+
+  .feedback-type-group::-webkit-scrollbar {
+      display: none;
+  }
+
+  .feedback-type-label {
+      flex-shrink: 0;
+      padding: 0.45rem 1rem;
+      font-size: 0.8rem;
+  }
+  .feedback-rating-group {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.25rem;
+  }
+  .stars-row {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 0.4rem;
+  }
+
+  .feedback-rating-text {
+      margin-left: 0 !important;
+      margin-top: 0.2rem;
+      font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .feedback-type-label {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+  }
+
+  .feedback-rating-star {
+      font-size: 1.7rem; 
+  }
+
+  .feedback-rating-text {
+      font-size: 0.78rem;
+  }
+}

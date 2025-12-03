@@ -8,7 +8,7 @@
 
 .polls-container {
   padding: 1.5rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;  
   
 }
@@ -53,6 +53,7 @@
   gap: 0.5rem;
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
   transition: background 0.2s;
+  margin: 0 !important;
 }
 
 .create-btn:hover {
@@ -558,4 +559,91 @@
   text-align: center;
   padding: 3rem;
   color: #94a3b8;
+}
+
+/* -------------------------------------
+   POLLS HEADER RESPONSIVENESS
+------------------------------------- */
+@media (max-width: 767px) {
+  .polls-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .create-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .create-btn {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.9rem;
+  }
+}
+
+/* ----------------------------------------------------
+   (ONLY MOBILES — below 768px)
+---------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .polls-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 0.75rem;
+    padding-bottom: 0.4rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .polls-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .poll-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    width: max-content !important;
+  }
+
+  .tab-btn {
+    white-space: nowrap !important;
+  }
+
+  .location-filter {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .location-select {
+    width: auto !important;
+    min-width: max-content !important;
+    white-space: nowrap !important;
+  }
 }

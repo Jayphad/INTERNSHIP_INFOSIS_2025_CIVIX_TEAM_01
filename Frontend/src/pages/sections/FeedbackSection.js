@@ -171,7 +171,7 @@ const FeedbackSection = ({ user }) => {
           </div>
 
           {/* --- Rating Scale --- */}
-          <div className="form-field-group">
+          {/* <div className="form-field-group">
             <label>Satisfaction Rating</label>
             <div className="feedback-rating-group">
               {[1,2,3,4,5].map(star => (
@@ -188,7 +188,36 @@ const FeedbackSection = ({ user }) => {
                 {rating > 0 ? `${rating} Stars` : 'Click to rate'}
               </span>
             </div>
-          </div>
+          </div> */}
+
+          {/* --- Rating Scale --- */}
+<div className="form-field-group">
+  <label>Satisfaction Rating</label>
+
+  <div className="feedback-rating-group">
+
+    {/* Stars Row */}
+    <div className="stars-row">
+      {[1, 2, 3, 4, 5].map(star => (
+        <button
+          key={star}
+          type="button"
+          className={`feedback-rating-star ${rating >= star ? 'active' : ''}`}
+          onClick={() => setRating(star)}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+
+    {/* Rating Text */}
+    <span className="feedback-rating-text">
+      {rating > 0 ? `${rating} Stars` : "Click to rate"}
+    </span>
+
+  </div>
+</div>
+
 
           {/* --- Message Box --- */}
           <div className="form-field-group">

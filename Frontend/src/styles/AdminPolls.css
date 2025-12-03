@@ -180,10 +180,15 @@
 }
 
 .admin-table-container {
+  /* background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  overflow: hidden; */
   background: white;
   border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
+  /* overflow: hidden; */
+  overflow-x: auto !important;
 }
 
 .admin-table {
@@ -191,6 +196,7 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 0.9rem;
+  min-width: 800px; 
 }
 
 .admin-table th {
@@ -547,3 +553,4 @@
   background: #f3f4f6;
   color: #374151;
 }
+

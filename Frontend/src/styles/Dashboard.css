@@ -483,3 +483,74 @@ DashBOard HomePage
   padding-top: 80px; /* Ensures content is below header */
   text-align: left;
 }
+
+/* ======================================
+   SMALL MOBILES FIX (max-width: 375px)
+====================================== */
+@media (max-width: 375px) {
+
+  .dashboard-header {
+    height: 52px;
+    padding: 0 0.8rem;
+  }
+  .sidebar-toggle-btn {
+    gap: 8px !important;
+    margin-left: 0 !important;
+  }
+
+  .sidebar-toggle-btn p {
+    font-size: 13px !important;
+  }
+  .dashboard-header .menu-icon {
+    font-size: 20px !important;
+    margin-left: 0 !important;
+  }
+  .header-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .header-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 13px !important;
+  }
+
+  
+  .header-user span {
+    display: none !important;
+  }
+
+  .dashboard-header-right button {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+  }
+
+  .dashboard-header-right {
+    gap: 0.6rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .petition-list-item-button {
+    padding: 6px 10px;
+    font-size: 12px;
+    white-space: nowrap; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px; 
+  }
+
+  .petition-list-item {
+    gap: 0.6rem;
+  }
+
+  .petition-list-item-title {
+    font-size: 14px;
+  }
+
+  .petition-list-item-stats {
+    font-size: 12px;
+  }
+}
