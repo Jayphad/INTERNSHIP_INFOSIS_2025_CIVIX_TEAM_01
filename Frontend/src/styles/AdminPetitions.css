@@ -63,12 +63,24 @@
   flex-wrap: wrap;
 }
 
-.search-wrapper {
+.search-wrapper-box {
   flex: 1;
   position: relative;
-  min-width: 250px;
+  min-width: 235px;
   display: flex;
   align-items: center;
+}
+
+.search-wrapper {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  padding-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
 .search-icon {
@@ -81,16 +93,15 @@
 }
 
 .search-wrapper input {
-  width: 100%;
-  padding: 0.7rem 0.7rem 0.7rem 2.5rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.375rem;
+  width: 96%;
+  padding: 0.7rem 0.7rem 0.7rem 0.25rem;
   font-size: 0.9rem;
   outline: none;
+  border: none;
   transition: border-color 0.2s;
 }
 
-.search-wrapper input:focus {
+.search-wrapper-box:focus {
   border-color:#3b034e;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
@@ -339,6 +350,7 @@
 .form-group select {
   width: 100%;
   padding: 0.75rem;
+  background-color: #f3f3f3;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   font-size: 0.95rem;

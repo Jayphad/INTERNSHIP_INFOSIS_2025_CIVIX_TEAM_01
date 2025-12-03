@@ -8,7 +8,7 @@
   .petition-container {
     max-width: 1400px;
     margin: 0 auto;
-    position: absolute;
+    /* position: absolute; */
     padding: 1rem;
     top: 50px;
   }
@@ -22,6 +22,12 @@
     gap: 1rem;
     justify-content: space-between;
   }
+
+@media (max-width: 767px) {
+    .petition-header {
+      display: block;
+    }
+}
 
   .page-title {
     font-size: 1.75rem;
@@ -50,7 +56,20 @@
     border-bottom: 1px solid #c8c8c8;
   }
 
-
+  @media (max-width: 1224px) {
+    .petition-toolbar {
+    display: flex;
+    background: #f8fafc;
+    z-index: 9;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    /* prevent jumping to next line */
+    padding: 1rem 0;
+    border-bottom: 1px solid #c8c8c8;
+  }
+  }
 
   /* Tabs Section */
   .petition-tabs {

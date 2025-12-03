@@ -84,7 +84,16 @@ const AdminFeedbackSection = () => {
 
     return (
         <div className="admin-feedback-container">
-            {/* --- Stats Header --- */}
+            <div className="dashboard-section-header admin-comm-section-header">
+                <div> 
+                    <h2 className="dashboard-section-title">
+                        Feedback Management
+                    </h2>
+                    <p className="dashboard-section-subtitle">
+                        Review and manage user feedback effectively.
+                    </p>
+                </div>
+            </div>
             <div className="feedback-stats-row">
                 <div className="stat-card">
                     <span className="stat-label">Total Feedback</span>

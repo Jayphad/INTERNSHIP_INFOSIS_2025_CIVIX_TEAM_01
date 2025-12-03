@@ -235,9 +235,11 @@ const AdminPollsSection = () => {
           </div>
 
           <div className="admin-controls-bar">
-            <div className="search-wrapper">
-              <Search size={18} className="search-icon" />
-              <input type="text" placeholder="Search polls..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <div className="search-wrapper-box">
+                <div className='search-wrapper'>
+                <Search size={18} className="search-icon" />
+                <input type="text" placeholder="Search polls..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              </div>
             </div>
             <div className="filter-wrapper">
               <Filter size={18} />

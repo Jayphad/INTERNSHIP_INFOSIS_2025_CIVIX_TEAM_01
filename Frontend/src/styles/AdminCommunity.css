@@ -8,6 +8,16 @@
     animation: fadeIn 0.3s ease-in-out;
 }
 
+.admin-comm-section-header {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -54,6 +64,13 @@
     transition: all 0.2s ease;
     position: relative;
     border-left: 4px solid #3b034e; /* Accent Border */
+    margin: 0.75rem 0;
+}
+
+.stat-icon-wrapper{
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-right: 1rem;
 }
 
 .admin-comm-card:hover {

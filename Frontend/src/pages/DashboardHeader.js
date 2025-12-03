@@ -1,5 +1,5 @@
 import React,{useEffect} from "react";
-import { Bell } from "../assets/icons";
+import { Bell,LogOut } from "../assets/icons";
 import "../styles/Dashboard.css";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -40,7 +40,7 @@ const DashboardHeader = ({ user, heading, toggleSidebar }) => {
           
         </div>
         <div>
-      <button onClick={handleLogout}>Logout</button>
+      <button onClick={handleLogout}><LogOut/></button>
       <ToastContainer />
     </div>
       </div>

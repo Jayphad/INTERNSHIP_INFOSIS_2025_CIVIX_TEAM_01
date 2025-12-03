@@ -43,7 +43,7 @@ console.log(discussion._id, "likedByMe:", discussion.likedByMe);
       </div>
 
       <div className="discussion-footer">
-        <button className="discussion-action-btn" onClick={() => onLike(discussion._id)}>
+        <button className="discussion-action-btn heart-icon" onClick={() => onLike(discussion._id)}>
       <Heart
           size={16}
           color={discussion.likedByMe ? "red" : "gray"}

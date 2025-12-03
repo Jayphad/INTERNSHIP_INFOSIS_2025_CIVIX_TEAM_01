@@ -116,7 +116,11 @@
   background-color: #f8fafc;
   color: #3b034e;
 }
-.heart-icon {
+.heart-icon button.active {
+  color: #ef4444;
+}
+
+.heart-icon:hover{
   color: #ef4444;
 }
 

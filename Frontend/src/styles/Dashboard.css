@@ -42,8 +42,8 @@ body {
   width: 100%;
   object-fit: cover;
   margin-left: 20px;
-  height : 75px;
-
+  height : 40px;
+  width: 80px;
 }
 
 .sidebar-mobile-header {
@@ -120,7 +120,7 @@ body {
 }
 
 .sidebar-footer button:hover {
-  color: #7c3aed;
+  color: #3b034e;
 }
 
 /* ===== Main Dashboard ===== */

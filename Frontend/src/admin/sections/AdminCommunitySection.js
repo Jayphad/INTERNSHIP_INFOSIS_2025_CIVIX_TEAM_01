@@ -114,16 +114,22 @@ const AdminCommunitySection = () => {
 
   return (
     <div className="dashboard-section-placeholder">
-      <div className="dashboard-section-header">
-        <h2 className="dashboard-section-title">
-          <Shield size={28} style={{ marginRight: '10px', color: '#3b034e' }} />
-          Community Moderation
-        </h2>
-        {!showCreateForm && (
-          <button className="btn-primary" onClick={() => setShowCreateForm(true)}>
-            <Plus size={18} /> New Official Post
-          </button>
-        )}
+      <div className="dashboard-section-header admin-comm-section-header">
+        <div> 
+          <h2 className="dashboard-section-title">
+            Community Moderation
+          </h2>
+          <p className="dashboard-section-subtitle">
+            Manage official posts and moderate community discussions.
+          </p>
+        </div>
+        <div>
+          {!showCreateForm && (
+            <button className="btn-primary" onClick={() => setShowCreateForm(true)}>
+              <Plus size={18} /> New Official Post
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="admin-comm-container">
