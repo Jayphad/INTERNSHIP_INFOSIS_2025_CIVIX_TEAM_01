@@ -39,6 +39,15 @@ function Login() {
         localStorage.setItem('role', role); // 👈 Store role
         localStorage.setItem('id', id); // 👈 Store role
 
+         const userObj = {
+          name,
+          role,
+          id,
+          token,
+          isSuperAdmin: result.isSuperAdmin // must come from backend
+        };
+        localStorage.setItem("user", JSON.stringify(userObj));
+
         handleSuccess(message);
 
         // ✅ Redirect based on role

@@ -89,4 +89,26 @@ router.patch("/:id/toggle", async (req, res) => {
   }
 });
 
+
+
+router.put('/mark-read/:id', async (req, res) => {
+  try {
+    const updated = await Feedback.findByIdAndUpdate(
+      req.params.id,
+      { status: "read" },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Feedback not found" });
+    }
+
+    res.json({ success: true, message: "Marked as read", feedback: updated });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 module.exports = router;

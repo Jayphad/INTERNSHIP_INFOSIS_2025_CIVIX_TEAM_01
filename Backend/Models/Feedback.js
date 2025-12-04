@@ -9,6 +9,7 @@ const feedbackSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   images: [{ type: String }], // store image URLs or filenames
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  status: { type: String, enum: ['unread', 'read'], default: 'unread' },
   createdAt: { type: Date, default: Date.now }
 });
 

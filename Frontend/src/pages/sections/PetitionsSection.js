@@ -70,6 +70,14 @@ const PetitionsSection = ({ user }) => {
    const [showAddressModal, setShowAddressModal] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("");
   
+  // --- Activity Logger (Stores in LocalStorage) ---
+const logActivity = (activity) => {
+  const existing = JSON.parse(localStorage.getItem("userActivity") || "[]");
+  existing.unshift(activity); // add to top
+  localStorage.setItem("userActivity", JSON.stringify(existing.slice(0, 20))); // keep last 20
+};
+
+
 const handleFilterChange = (e) => {
     setFilters({
         ...filters,
@@ -325,8 +333,19 @@ const handleSign = async (id) => {
       name: user?.name || "User"
     });
 
-    if (res.data.success) fetchPetitions();
-    else alert(res.data.message || "Failed to sign.");
+     if (res.data.success) {
+      fetchPetitions();
+
+      // ✅ Add activity log HERE
+      logActivity({
+        id: crypto.randomUUID(),
+        type: "Petition Signed",
+        description: `You signed: ${res.data.petition?.title || "a petition"}`,
+        time: new Date().toLocaleString(),
+      });
+    } else {
+      alert(res.data.message || "Failed to sign.");
+    }
   } catch (e) {
     alert("Failed to sign petition.");
   }

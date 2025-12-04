@@ -8,11 +8,17 @@ import { FormButton } from "../FormControls";
   const [loggedInUser, setLoggedInUser] = useState("");
   const [petitions, setPetitions] = useState([]);
 
-  const recentActivities = [
-    { id: 1, type: "Petition Signed", description: "You signed 'Improve Public Park Safety'", time: "2 hours ago" },
-    { id: 2, type: "Poll Voted", description: "You voted on 'New City Budget Priorities'", time: "1 day ago" },
-    { id: 3, type: "Report Filed", description: "Report for 'Illegal Dumping' has been reviewed", time: "3 days ago" },
-  ];
+  const [polls, setPolls] = useState([]);
+const [feedbackCount, setFeedbackCount] = useState(0);
+const [feedbackList, setFeedbackList] = useState([]);
+
+//community
+const [membersCount, setMembersCount] = useState(0);
+
+
+
+  const [recentActivities, setRecentActivities] = useState([]);
+
 
   useEffect(() => {
     setLoggedInUser(localStorage.getItem("loggedInUser"));
@@ -36,11 +42,88 @@ import { FormButton } from "../FormControls";
     fetchPetitions();
   }, []);
 
+useEffect(() => {
+  const fetchPolls = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/polls/all");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        const activePolls = data.data
+          .filter((p) => p.status === "active")
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // latest first
+
+        setPolls(activePolls);
+      } else {
+        console.warn("Unexpected poll response:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching polls:", err);
+    }
+  };
+
+  fetchPolls();
+}, []);
+
+
+// ✅ Fetch Feedback Count
+useEffect(() => {
+  const fetchFeedback = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/feedback/all");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.feedbacks)) {
+        const sortedFeedback = data.feedbacks.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setFeedbackList(sortedFeedback);        // full
+        setFeedbackCount(sortedFeedback.length); // count only
+      } else {
+        console.warn("Unexpected feedback response:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching feedback:", err);
+    }
+  };
+
+  fetchFeedback();
+}, []);
+
+// ✅ Fetch community Count
+
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/auth/users");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.users)) {
+        setMembersCount(data.users.length);
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
+
+// dASHbOARD aCTIVITY lOGGER
+
+useEffect(() => {
+  const data = JSON.parse(localStorage.getItem("userActivity") || "[]");
+  setRecentActivities(data);
+}, []);
+
+
   const stats = [
     { title: "Active Petitions", value: petitions.length.toString(), icon: FileText, color: "blue" },
-    { title: "Active Polls", value: "82", icon: BarChart2, color: "green" },
-    { title: "Reports Filed", value: "531", icon: Flag, color: "red" },
-    { title: "Community Members", value: "24,819", icon: Users, color: "purple" },
+     { title: "Active Polls", value: polls.length.toString(), icon: BarChart2, color: "green" },
+    { title: "Feedback Received", value: feedbackCount.toString(), icon: Users, color: "purple" },
+     { title: "Community Members", value: membersCount.toString(), icon: Users, color: "yellow" },
   ];
 
   return (
@@ -114,13 +197,96 @@ import { FormButton } from "../FormControls";
             </ul>
           </ContentCard>
         </div>
+
+      {/* ✅ Recent & Active Polls */}
+<div className="main-content-col-span-2">
+  <ContentCard
+    title="Recent & Active Polls"
+    icon={BarChart2}
+    actions={
+      <button
+        className="view-all-button"
+        onClick={() => setCurrentSection("polls")}
+      >
+        View All
+      </button>
+    }
+  >
+    <ul className="petition-list">
+      {polls.length > 0 ? (
+        polls.slice(0, 4).map((poll) => (
+          <li key={poll._id} className="petition-list-item">
+            <div>
+              <h4 className="petition-list-item-title">{poll.question}</h4>
+              <p className="petition-list-item-stats">
+                {poll.totalVotes} votes
+              </p>
+              <div className="progress-bar-bg">
+                <div
+                  className="progress-bar-fg"
+                  style={{
+                    width: `${Math.min((poll.totalVotes / 1000) * 100, 100)}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+            <button className="petition-list-item-button">View / Vote</button>
+          </li>
+        ))
+      ) : (
+        <p className="activity-empty-text">No active polls yet.</p>
+      )}
+    </ul>
+  </ContentCard>
+</div>
+
+        {/* ✅ Recent Feedback */}
+
+<div className="main-content-col-span-2">
+  <ContentCard
+    title="Recent Feedback"
+    icon={Users}
+    actions={
+      <button
+        className="view-all-button"
+        onClick={() => setCurrentSection("feedback")}
+      >
+        View All
+      </button>
+    }
+  >
+    <ul className="petition-list">
+      {feedbackList.length > 0 ? (
+        feedbackList.slice(0, 4).map((fb) => (
+          <li key={fb._id} className="petition-list-item">
+            <div>
+              <h4 className="petition-list-item-title">
+                {fb.name || "Anonymous"}
+              </h4>
+              <p className="petition-list-item-stats">
+                {fb.category} — {fb.feedbackType}
+              </p>
+            </div>
+
+            <button className="petition-list-item-button">
+              View
+            </button>
+          </li>
+        ))
+      ) : (
+        <p className="activity-empty-text">No feedback submitted yet.</p>
+      )}
+    </ul>
+  </ContentCard>
+</div>
+
         
         {/* Activity Feed + Quick Actions */}
         <div className="main-content-col-right">
           <ContentCard 
             title="Your Recent Activity" 
             icon={Bell}
-            actions={<button className="view-all-button">View All</button>}
+            // actions={<button className="view-all-button">View All</button>}
           >
             <ul className="activity-list">
               {recentActivities.length > 0 ? (
@@ -143,30 +309,44 @@ import { FormButton } from "../FormControls";
             </ul>
           </ContentCard>
         
-          {/* ✅ Quick Actions */}
-          <div className="main-content-col-right">
-            <ContentCard title="Quick Actions" icon={ArrowRight}>
-              <div className="quick-actions-list">
-                <FormButton
-                  variant="primary"
-                  onClick={() => {
-                    // Save flag and go to Petition section
-                    localStorage.setItem("openCreatePetition", "true");
-                    setCurrentSection("petitions");
-                  }}
-                >
-                  <FileText size={18} /> Start a New Petition
-                </FormButton>
+              {/* ✅ Quick Actions */}
+              <div className="main-content-col-right">
+                <ContentCard title="Quick Actions" icon={ArrowRight}>
+                  <div className="quick-actions-list">
+                    <FormButton
+                      variant="primary"
+                      onClick={() => {
+                        // Save flag and go to Petition section
+                        localStorage.setItem("openCreatePetition", "true");
+                        setCurrentSection("petitions");
+                      }}
+                    >
+                      <FileText size={18} /> Start a New Petition
+                    </FormButton>
 
-                <FormButton variant="secondary">
-                  <BarChart2 size={18} /> Create a New Poll
-                </FormButton>
-                <FormButton variant="secondary">
-                  <Flag size={18} /> File a New Report
-                </FormButton>
+                   <FormButton
+                      variant="secondary"
+                      onClick={() => {
+                        localStorage.setItem("openCreatePoll", "true");
+                        setCurrentSection("polls");
+                      }}
+                    >
+                      <BarChart2 size={18} /> Create a New Poll
+                    </FormButton>
+
+                     {/* Submit Feedback */}
+                      <FormButton
+                        variant="secondary"
+                        onClick={() => {
+                          localStorage.setItem("openCreateFeedback", "true");
+                          setCurrentSection("feedback");
+                        }}
+                      >
+                        <Flag size={18} /> Submit A Feedback Report
+                      </FormButton>
+                  </div>
+                </ContentCard>
               </div>
-            </ContentCard>
-          </div>
         </div>
       </div>
     </div>

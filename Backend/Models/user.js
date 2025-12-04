@@ -25,6 +25,11 @@ const userSchema = new schema({
   longitude: { 
     type: Number, 
     default: null },
+
+    // New fields
+  approved: { type: Boolean, default: false }, // only for officials
+  isSuperAdmin: { type: Boolean, default: false } // only for super admin
+
 });
 
 const UserModel = mongoose.model('users', userSchema);

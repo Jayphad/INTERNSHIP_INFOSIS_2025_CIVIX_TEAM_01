@@ -20,6 +20,12 @@ import {
 } from '../../assets/icons';
 import "../../styles/Polls.css";
 
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+
+
 // NOTE: change if backend runs on other port
 const API_URL = "http://localhost:8080/polls";
 
@@ -34,6 +40,13 @@ const timeAgo = (dateString) => {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 };
+const logActivity = (activity) => {
+  const existing = JSON.parse(localStorage.getItem("userActivity") || "[]");
+  existing.unshift(activity);
+  localStorage.setItem("userActivity", JSON.stringify(existing.slice(0, 10))); 
+  // store max 10 items
+};
+
 
 const getUserId = (user) => {
   const storedId = localStorage.getItem("id");
@@ -49,10 +62,116 @@ const PollsSection = ({ user }) => {
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState('All Locations');
-  const [newPoll, setNewPoll] = useState({ id: null, question: "", description: "", options: [{ text: "" }, { text: "" }], location: "", closesOn: "" });
+ const [newPoll, setNewPoll] = useState({ 
+  id: null,
+  question: "",
+  description: "",
+  options: [{ text: "" }, { text: "" }],
+  
+  // ⭐ Add location support
+  manualLocation: "",
+  browserLocation: { latitude: null, longitude: null },
+  
+  closesOn: ""
+});
+
   const [feedbackData, setFeedbackData] = useState({ pollId: null, type: "Suggestion", details: "" });
   const loggedInUserId = getUserId(user);
   const userName = user?.name || "User";
+//map 
+const [showMapModal, setShowMapModal] = useState(false);
+const [map, setMap] = useState(null);
+const [marker, setMarker] = useState(null);
+
+const [selectedPosition, setSelectedPosition] = useState(null);
+
+useEffect(() => {
+  if(newPoll.browserLocation.latitude && newPoll.browserLocation.longitude){
+    setSelectedPosition({ 
+      lat: newPoll.browserLocation.latitude, 
+      lng: newPoll.browserLocation.longitude 
+    });
+  }
+}, [newPoll]);
+
+//zoom marker on exiating location
+useEffect(() => {
+  if (map && selectedPosition) {
+    map.setView([selectedPosition.lat, selectedPosition.lng], 13);
+  }
+}, [map, selectedPosition]);
+
+
+
+// Component for Polls
+// Component for Polls
+const LocationMarker = ({ setNewPoll }) => {
+  const [position, setPosition] = useState(null);
+
+  const map = useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      setPosition(e.latlng);
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        const address = data.display_name || `${lat}, ${lng}`;
+
+        setNewPoll(prev => ({
+          ...prev,
+          browserLocation: { latitude: lat, longitude: lng },
+          manualLocation: address
+        }));
+      } catch (err) {
+        console.error("Error fetching address:", err);
+        setNewPoll(prev => ({
+          ...prev,
+          browserLocation: { latitude: lat, longitude: lng },
+          manualLocation: `${lat}, ${lng}`
+        }));
+      }
+    },
+
+    locationfound(e) {
+      setPosition(e.latlng);
+    }
+  });
+
+  return position === null ? null : (
+    <Marker
+      position={position}
+      draggable={true}
+      eventHandlers={{
+        dragend: async (e) => {
+          const latlng = e.target.getLatLng();
+          setPosition(latlng);
+
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
+            const data = await res.json();
+            const address = data.display_name || `${latlng.lat}, ${latlng.lng}`;
+
+            setNewPoll(prev => ({
+              ...prev,
+              browserLocation: { latitude: latlng.lat, longitude: latlng.lng },
+              manualLocation: address
+            }));
+          } catch (err) {
+            setNewPoll(prev => ({
+              ...prev,
+              browserLocation: { latitude: latlng.lat, longitude: latlng.lng },
+              manualLocation: `${latlng.lat}, ${latlng.lng}`
+            }));
+          }
+        }
+      }}
+    />
+  );
+};
+
+
+
 
   // Load cache fallback first (optional)
   useEffect(() => {
@@ -69,8 +188,49 @@ const PollsSection = ({ user }) => {
     localStorage.setItem('civix_polls_cache', JSON.stringify(polls));
   }, [polls]);
 
+  // Auto-open create poll modal when coming from Quick Actions
+useEffect(() => {
+  if (localStorage.getItem("openCreatePoll") === "true") {
+   setNewPoll({
+  id: null,
+  question: "",
+  description: "",
+  options: [{ text: "" }, { text: "" }],
+  
+  // ⭐ Updated location fields
+  manualLocation: "",
+  browserLocation: { latitude: null, longitude: null },
+  
+  closesOn: ""
+});
+
+    setShowCreateModal(true);
+    localStorage.removeItem("openCreatePoll");
+  }
+}, []);
+
+// Map initialization
+// useEffect(() => {
+//   if (showMapModal) {
+//     setTimeout(() => {
+//       if (!map) {
+//         const leafletMap = L.map("map").setView([19.9975, 73.7898], 13);
+
+//         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+//           attribution: "© OpenStreetMap contributors",
+//         }).addTo(leafletMap);
+
+//         setMap(leafletMap);
+//       }
+//     }, 50); // delay so modal renders first
+//   }
+// }, [showMapModal]);
+
+
+
+
   const allLocations = useMemo(() => {
-    return [...new Set(polls.map(p => p.location).filter(Boolean))];
+    return [...new Set(polls.map(p => p.manualLocation).filter(Boolean))];
   }, [polls]);
 
   // ------------------------
@@ -105,17 +265,24 @@ const handleCreateOrUpdate = async (e) => {
   }
 
   const payload = {
-    question: newPoll.question,
-    description: newPoll.description,
-    location: newPoll.location,
-    closesOn: newPoll.closesOn,
-    options: cleanOptions.map((o, i) => ({
-      id: o.id || `opt_${Date.now()}_${i}`,
-      text: o.text
-    })),
-    authorId: loggedInUserId,
-    authorName: userName,
-  };
+  question: newPoll.question,
+  description: newPoll.description,
+
+  // ⭐ NEW — same as Petition
+  browserLocation: newPoll.browserLocation,
+  manualLocation: newPoll.manualLocation,
+
+  closesOn: newPoll.closesOn,
+
+  options: cleanOptions.map((o, i) => ({
+    id: o.id || `opt_${Date.now()}_${i}`,
+    text: o.text,
+  })),
+
+  authorId: loggedInUserId,
+  authorName: userName,
+};
+
 
   try {
     let res;
@@ -142,16 +309,23 @@ const handleCreateOrUpdate = async (e) => {
           return [updated, ...prev];
         }
       });
+    
+
 
       setShowCreateModal(false);
-      setNewPoll({
+     setNewPoll({
         id: null,
         question: "",
         description: "",
         options: [{ text: "" }, { text: "" }],
-        location: "",
+        
+        // ⭐ Updated location fields
+        manualLocation: "",
+        browserLocation: { latitude: null, longitude: null },
+        
         closesOn: ""
       });
+
     }
   } catch (err) {
     console.error(err);
@@ -176,44 +350,62 @@ const handleCreateOrUpdate = async (e) => {
     }
   };
 
-  const handleVote = async (pollId, optionId) => {
-    if (!loggedInUserId) {
-      alert("Please log in to vote.");
-      return;
-    }
+ const handleVote = async (pollId, optionId) => {
+  if (!loggedInUserId) {
+    alert("Please log in to vote.");
+    return;
+  }
 
-    // optimistic update
-    setPolls(prev => prev.map(p => {
-      if (p.id !== pollId) return p;
-      const existing = (p.results && p.results[optionId]) || 0;
-      return {
-        ...p,
-        results: { ...(p.results || {}), [optionId]: existing + 1 },
-        totalVotes: (p.totalVotes || 0) + 1,
-        votedBy: [...(p.votedBy || []), loggedInUserId],
-        userVote: { ...(p.userVote || {}), [loggedInUserId]: optionId }
-      };
-    }));
+  // optimistic update
+  setPolls(prev => prev.map(p => {
+    if (p.id !== pollId) return p;
+    const existing = (p.results && p.results[optionId]) || 0;
+    return {
+      ...p,
+      results: { ...(p.results || {}), [optionId]: existing + 1 },
+      totalVotes: (p.totalVotes || 0) + 1,
+      votedBy: [...(p.votedBy || []), loggedInUserId],
+      userVote: { ...(p.userVote || {}), [loggedInUserId]: optionId }
+    };
+  }));
 
-    try {
-      const res = await axios.post(`${API_URL}/${pollId}/vote`, { userId: loggedInUserId, optionId });
-      if (!res?.data?.success) {
-        // rollback: refetch from server
-        console.warn("Vote failed on server, refetching polls");
-        await fetchPolls();
-        alert(res?.data?.message || "Failed to register vote.");
-      } else {
-        // if server returns updated poll, merge it (preferred)
-        if (res.data.data) {
-          setPolls(prev => prev.map(p => p.id === pollId ? res.data.data : p));
-        }
-      }
-    } catch (err) {
-      console.error("Error during vote:", err);
-      alert("Failed to submit vote. Try again.");
+  try {
+    const res = await axios.post(`${API_URL}/${pollId}/vote`, { 
+      userId: loggedInUserId, 
+      optionId 
+    });
+
+    if (!res?.data?.success) {
+      console.warn("Vote failed on server, refetching polls");
       await fetchPolls();
+      alert(res?.data?.message || "Failed to register vote.");
+    } else {
+
+      // if server returns updated poll, merge it
+      if (res.data.data) {
+        setPolls(prev => prev.map(p => p.id === pollId ? res.data.data : p));
+      }
+
+      // -----------------------------------------
+      // ✅ ADD ACTIVITY LOG HERE (SUCCESS CASE)
+      // -----------------------------------------
+      const votedPoll = polls.find(p => p.id === pollId);
+
+      logActivity({
+        id: crypto.randomUUID(),
+        type: "Poll Voted",
+        description: `You voted in poll: ${votedPoll?.question || "a poll"}`,
+        time: new Date().toLocaleString(),
+      });
+      // -----------------------------------------
     }
-  };
+
+  } catch (err) {
+    console.error("Error during vote:", err);
+    alert("Failed to submit vote. Try again.");
+    await fetchPolls();
+  }
+};
 
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();
@@ -253,14 +445,19 @@ const handleCreateOrUpdate = async (e) => {
   };
 
   const openEditModal = (p) => {
-    setNewPoll({
-      id: p.id,
-      question: p.question,
-      description: p.description,
-      options: p.options.map(o => ({ ...o })), // copy
-      location: p.location,
-      closesOn: p.closesOn
-    });
+   setNewPoll({
+  id: p.id,
+  question: p.question,
+  description: p.description,
+  options: p.options.map(o => ({ ...o })), // copy
+  manualLocation: p.manualLocation || "",       // ⭐ new
+  browserLocation: p.browserLocation || {       // ⭐ new
+    latitude: null,
+    longitude: null
+  },
+  closesOn: p.closesOn
+});
+
     setShowCreateModal(true);
   };
 
@@ -288,7 +485,7 @@ const handleCreateOrUpdate = async (e) => {
     if (activeTab === 'closed') filtered = filtered.filter(p => p.status === 'closed');
 
     if (locationFilter !== 'All Locations') {
-      filtered = filtered.filter(p => p.location === locationFilter);
+      filtered = filtered.filter(p => p.manualLocation === locationFilter);
     }
     return filtered;
   }, [polls, activeTab, locationFilter, loggedInUserId]);
@@ -307,7 +504,19 @@ const handleCreateOrUpdate = async (e) => {
           <button
             className="create-btn"
             onClick={() => {
-              setNewPoll({ id: null, question: "", description: "", options: [{ text: "" }, { text: "" }], location: "", closesOn: "" });
+             setNewPoll({
+                  id: null,
+                  question: "",
+                  description: "",
+                  options: [{ text: "" }, { text: "" }],
+                  
+                  // ⭐ Updated location fields
+                  manualLocation: "",
+                  browserLocation: { latitude: null, longitude: null },
+                  
+                  closesOn: ""
+                });
+
               setShowCreateModal(true);
             }}
           >
@@ -358,7 +567,18 @@ const handleCreateOrUpdate = async (e) => {
                   </div>
                   <h3 className="card-title">{poll.question}</h3>
                   <div className="card-meta">
-                    <span>By: {poll.authorName || "Anonymous"}</span><span style={{ color: '#cbd5e1' }}>|</span><span><MapPin size={14} /> {poll.location || "Global"}</span>
+                    <span>By: {poll.authorName || "Anonymous"}</span>
+                   <span>
+                    <MapPin size={14} /> 
+                    {poll.manualLocation 
+                      ? (poll.manualLocation.length > 30 
+                          ? poll.manualLocation.substring(0, 30) + "..." 
+                          : poll.manualLocation
+                        )
+                      : "Global"
+                    }
+                  </span>
+
                   </div>
                   <p style={{ color: '#475569', lineHeight: 1.5 }}>{poll.description}</p>
 
@@ -465,7 +685,34 @@ const handleCreateOrUpdate = async (e) => {
                 {newPoll.options.length < 10 && <button type="button" className="add-opt-btn" onClick={() => setNewPoll({ ...newPoll, options: [...newPoll.options, { text: "" }] })}><Plus size={16} /> Add Option</button>}
               </div>
               <div className="form-row">
-                <div><label className="form-label">Location</label><input className="form-input" value={newPoll.location} onChange={(e) => setNewPoll({ ...newPoll, location: e.target.value })} required /></div>
+                <div><label className="form-label">Location</label>
+              
+                <input 
+                  className="form-input"
+                  value={newPoll.manualLocation || ""} 
+                  onChange={(e) => setNewPoll({...newPoll, manualLocation: e.target.value})} 
+                  placeholder="Enter location manually or select on map"
+                />
+
+
+                </div>
+              <button
+                  type="button"
+                  onClick={() => setShowMapModal(true)}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                >
+                  Select Location on Map
+                </button>
+
+
+
+                  {/* Show chosen location */}
+                  {newPoll.manualLocation && (
+                    <p className="mt-2 text-green-600 text-sm">
+                      Selected Location: {newPoll.manualLocation}
+                    </p>
+                  )}
+
                 <div><label className="form-label">Closes On</label><input type="date" className="form-input" value={newPoll.closesOn} onChange={(e) => setNewPoll({ ...newPoll, closesOn: e.target.value })} required /></div>
               </div>
               <div className="info-box"><AlertCircle size={20} className="info-icon" /><div className="info-content"><h4>Important</h4><p>Polls should be genuine community questions.</p></div></div>
@@ -494,6 +741,48 @@ const handleCreateOrUpdate = async (e) => {
           </div>
         </div>
       )}
+      {showMapModal && (
+      <div className="modal-overlay">
+        <div className="modal" style={{ maxWidth: '600px', width: '90%', height: '500px' }}>
+          
+          <div className="modal-header">
+            <h3>Select Poll Location</h3>
+            <button className="modal-close" onClick={() => setShowMapModal(false)}><X size={24}/></button>
+          </div>
+
+          <div style={{ height: '400px', width: '100%' }}>
+            <MapContainer
+              center={[
+                newPoll.browserLocation?.latitude || 18.5204,
+                newPoll.browserLocation?.longitude || 73.8567
+              ]}
+              zoom={13}
+              style={{ height: '400px', width: '100%' }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              
+              <LocationMarker
+                position={selectedPosition}
+                setPosition={setSelectedPosition}
+                setNewPoll={setNewPoll}
+              />
+            </MapContainer>
+
+            {selectedPosition === null && (
+              <div className="map-instruction" style={{position:'absolute',top:10,left:10,zIndex:1000,background:'#fff',padding:'5px 10px',borderRadius:4}}>
+                Click on map to select location
+              </div>
+            )}
+          </div>
+
+          <div className="modal-buttons" style={{marginTop:'1rem', display:'flex', justifyContent:'flex-end'}}>
+            <button className="submit-btn" onClick={() => setShowMapModal(false)}>Done</button>
+          </div>
+
+        </div>
+      </div>
+    )}
+
 
     </div>
   );

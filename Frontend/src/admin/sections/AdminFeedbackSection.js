@@ -1,3 +1,5 @@
+import axios from "axios";
+import SvgStar from '../../components/SvgStar';
 import React, { useState, useEffect } from 'react';
 import { 
     MessageSquare, 
@@ -15,11 +17,13 @@ const AdminFeedbackSection = () => {
     const [filter, setFilter] = useState('all'); // all, unread, bug_report, suggestion
     const [selectedFeedback, setSelectedFeedback] = useState(null);
 
-    // Load data from LocalStorage on mount
-   useEffect(() => {
+// Load data from LocalStorage on mount
+useEffect(() => {
     fetch("http://localhost:8080/feedback/all")
         .then(res => res.json())
         .then(data => {
+            console.log("🔥 FEEDBACK RESPONSE:", data);  // <--- ADD THIS
+
             if (data.success) {
                 setFeedbacks(data.feedbacks);
             }
@@ -48,7 +52,7 @@ const AdminFeedbackSection = () => {
 
     // Helper: Mark as Read/Unread
    const toggleReadStatus = (id) => {
-    fetch(`http://localhost:8080/feedback/${id}/toggle`, {
+fetch(`http://localhost:8080/feedback/${id}/toggle`, {
         method: "PATCH"
     })
     .then(res => res.json())
@@ -65,6 +69,23 @@ const AdminFeedbackSection = () => {
         }
     });
 };
+
+
+//read unread 
+const markAsRead = async (id) => {
+  try {
+    const res = await axios.put(`http://localhost:8080/api/feedback/mark-read/${id}`);
+    
+    // update UI after marking read
+    setFeedbacks(prev =>
+      prev.map(f => f._id === id ? { ...f, status: "read" } : f)
+    );
+    
+  } catch (error) {
+    console.error("Mark read error:", error);
+  }
+};
+
 
 
     // Filter Logic
@@ -140,10 +161,21 @@ const AdminFeedbackSection = () => {
                                 >
                                     <div className="card-top">
                                         <span className={`badge ${item.feedbackType}`}>{item.feedbackType.replace('_', ' ')}</span>
-                                        <span className="card-date">{new Date(item.timestamp).toLocaleDateString()}</span>
+                                        <span className="card-date">{new Date(item.createdAt).toLocaleDateString()}</span>
                                     </div>
                                         <h4 className="card-subject">{item.category || "No Category"}</h4>
                                     <p className="card-snippet">{item.message.substring(0, 50)}...</p>
+                                   <div className="card-rating" aria-hidden>
+                                        {[...Array(5)].map((_, i) => (
+                                            <SvgStar
+                                            key={i}
+                                            size={14}
+                                            filled={i < Number(item.rating ?? 0)}
+                                            className="star-icon"
+                                            />
+                                        ))}
+                                        </div>
+
                                     <div className="card-footer">
                                         <small>{item.name}</small>
                                         {item.status === 'unread' && <div className="unread-dot"></div>}
@@ -164,7 +196,7 @@ const AdminFeedbackSection = () => {
                                         {selectedFeedback.feedbackType.replace('_', ' ')}
                                     </span>
                                     <span className="detail-date">
-                                        <Clock size={14}/> {new Date(selectedFeedback.timestamp).toLocaleString()}
+                                        <Clock size={14}/> {new Date(selectedFeedback.createdAt).toLocaleString()}
                                     </span>
                                 </div>
                                 <div className="detail-actions">
@@ -173,7 +205,12 @@ const AdminFeedbackSection = () => {
                                         onClick={() => toggleReadStatus(selectedFeedback._id)}
                                         title={selectedFeedback.status === 'unread' ? "Mark as Read" : "Mark as Unread"}
                                     >
-                                        <CheckCircle size={18} color={selectedFeedback.status === 'read' ? 'green' : '#666'} />
+                                        <CheckCircle
+                                            className="action-icon"
+                                            onClick={() => markAsRead(selectedFeedback._id)}
+                                            size={18}
+                                            color={selectedFeedback.status === 'read' ? 'green' : '#666'}
+                                        />
                                     </button>
                                     <button 
                                         className="action-btn delete" 
@@ -194,19 +231,21 @@ const AdminFeedbackSection = () => {
                                     <p>{selectedFeedback.email}</p>
                                     <p className="user-type">User Account: {selectedFeedback.user}</p>
                                 </div>
-                               <div className="detail-rating">
+                              <div className="detail-rating" aria-label={`Rating ${Number(selectedFeedback?.rating ?? 0)} out of 5`}>
                                     {(() => {
-                                        const ratingValue = selectedFeedback?.rating || 0;
+                                        const ratingValue = Number(selectedFeedback?.rating ?? 0);
                                         return [...Array(5)].map((_, i) => (
-                                            <Star 
-                                                key={i} 
-                                                size={16} 
-                                                fill={i < ratingValue ? "#FFD700" : "#eee"} 
-                                                stroke="none" 
-                                            />
+                                        <SvgStar
+                                            key={i}
+                                            size={16}
+                                            filled={i < ratingValue}
+                                            className="star-icon"
+                                        />
                                         ));
                                     })()}
-                                </div>
+                                    </div>
+
+
 
                             </div>
 
@@ -217,11 +256,11 @@ const AdminFeedbackSection = () => {
                                 </div>
                             </div>
 
-                            {selectedFeedback.imageNames && selectedFeedback.imageNames.length > 0 && (
+                            {selectedFeedback.images && selectedFeedback.images.length > 0 && (
                                 <div className="detail-attachments">
-                                    <h4>Attachments ({selectedFeedback.imageNames.length})</h4>
+                                    <h4>Attachments ({selectedFeedback.images.length})</h4>
                                     <div className="attachment-list">
-                                        {selectedFeedback.imageNames.map((name, idx) => (
+                                        {selectedFeedback.images.map((name, idx) => (
                                             <div key={idx} className="attachment-item">
                                                 <span className="file-icon">🖼️</span> {name}
                                             </div>

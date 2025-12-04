@@ -29,6 +29,13 @@ const AdminPetitionsSection = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [viewPetition, setViewPetition] = useState(null); // For "Eye" modal
 
+     // --- Activity Logger (Stores in LocalStorage) ---
+// const logActivity = (activity) => {
+//   const existing = JSON.parse(localStorage.getItem("userActivity") || "[]");
+//   existing.unshift(activity); // add to top
+//   localStorage.setItem("userActivity", JSON.stringify(existing.slice(0, 20))); // keep last 20
+// };
+
     // ✅ Added ownerId to state to preserve original owner during updates
     const [newPetition, setNewPetition] = useState({ id: null, title: '', description: '', category: 'Community', location: '', goal: 100, ownerId: null });
     const [error, setError] = useState(null);

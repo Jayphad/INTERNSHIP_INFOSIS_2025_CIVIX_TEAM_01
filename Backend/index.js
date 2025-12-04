@@ -9,6 +9,7 @@ const reportsRouter = require('./Routes/ReportRouter');
 const feedbackRouter = require('./Routes/FeedbackRouter');
 const communityRouter = require('./Routes/CommunityRouter');
 
+const adminRouter = require('./Routes/adminRouter');
 
 
 const app = express();
@@ -16,7 +17,7 @@ const app = express();
 // ✅ 1. Allow all required HTTP methods for your frontend
 app.use(cors({
   origin: 'http://localhost:3000',  // React app port
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT','PATCH' ,'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -55,6 +56,11 @@ app.use('/feedback', feedbackRouter);
 
 //for community posts
 app.use('/community', communityRouter);
+
+
+// Admin Router
+
+app.use('/api/admin', adminRouter);
 
 // ✅ 5. Start Server
 const PORT = process.env.PORT || 8080;

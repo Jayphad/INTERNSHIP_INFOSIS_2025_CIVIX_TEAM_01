@@ -94,11 +94,16 @@ const verifyOTP = async (req, res) => {
 
     // hash password and save user
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new UserModel({ name, email, password: hashedPassword,
+    const newUser = new UserModel({ 
+      name, 
+      email, 
+      password: hashedPassword,
       role: role || 'citizen',
-      latitude: latitude ===undefined ? null : latitude,
-      longitude: longitude ===undefined ? null : longitude
-     });
+      latitude: latitude === undefined ? null : latitude,
+      longitude: longitude === undefined ? null : longitude,
+      approved: role === 'citizen' ? true : false
+    });
+
     await newUser.save();
 
     delete otpStore[email];
@@ -138,55 +143,69 @@ const verifyOTP = async (req, res) => {
    
 // }
 
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await UserModel.findOne({ email });
 
-const login=async(req,res)=>{
-
-    try{
-        const{email, password}=req.body;
-        const user=await UserModel.findOne({email});
-        const errorMsg='Auth Failed Email or password is wrong';
-        if(!user){
-            return res.status(403)
-            .json({message:errorMsg,success:false});
-        }
-        const isPassEqual=await bcrypt.compare(password,user.password);
-        if(!isPassEqual){
-            return res.status(403)
-            .json({message:errorMsg,success:false});
-        }
-        const token=jwt.sign(
-            { email:user.email,  _id:user._id},
-            process.env.JWT_SECRET,
-            {expiresIn:'24h'}
-        );
-
-         // 👇 Print user detail in console
-        console.log("✅ Logged-in user details:", {
-            id: user._id,
-            name: user.name,
-            email: user.email
-        });
-
-        res.status(200)
-        .json({message:"Login success",
-            success:true,
-            token,
-            email,
-            name:user.name,
-            role:user.role,
-            id:user._id
-        });
-
+    const errorMsg = 'Auth Failed: Email or password is wrong';
+    if (!user) {
+      return res.status(403).json({ message: errorMsg, success: false });
     }
-    catch(err){
-        res.status(500)
-        .json({
-            message:"Internal Server Error",
-            success:false
-        });
+
+    const isPassEqual = await bcrypt.compare(password, user.password);
+    if (!isPassEqual) {
+      return res.status(403).json({ message: errorMsg, success: false });
     }
-   
-}
+
+    // Check if official is approved
+    if (user.role === "official" && !user.approved) {
+      return res.status(403).json({
+        message: "Your account is pending approval by Super Admin",
+        success: false
+      });
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { 
+        email: user.email,
+        _id: user._id,
+        role: user.role,
+        isSuperAdmin: user.isSuperAdmin
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    console.log("✅ Logged-in user details:", {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isSuperAdmin: user.isSuperAdmin
+    });
+
+    // ✅ Send isSuperAdmin in response
+    res.status(200).json({
+      message: "Login success",
+      success: true,
+      token,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      isSuperAdmin: user.isSuperAdmin, // <-- Add this
+      id: user._id
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Internal Server Error",
+      success: false
+    });
+  }
+};
 
 
 // ---------------------- FORGOT PASSWORD (OTP Based) ----------------------
@@ -272,6 +291,57 @@ const resetPassword = async (req, res) => {
 
 
 
+const createSuperAdmin = async (req, res) => {
+  try {
+    // Step 1: Check if any super admin exists
+    const existingAdmin = await UserModel.findOne({ isSuperAdmin: true });
+    if (existingAdmin) {
+      return res.status(400).json({ success: false, message: "Super Admin already exists" });
+    }
+
+    // Step 2: Extract and validate request body
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Name, email, and password are required" });
+    }
+
+    // Step 3: Check if email is already used
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already in use" });
+    }
+
+    // Step 4: Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Step 5: Create super admin
+    const superAdmin = new UserModel({
+      name,
+      email,
+      password: hashedPassword,
+      role: "official",
+      approved: true,
+      isSuperAdmin: true,
+      latitude: null,
+      longitude: null
+    });
+
+    await superAdmin.save();
+
+    // Step 6: Respond success
+    res.status(201).json({ success: true, message: "Super Admin created successfully", user: superAdmin });
+
+  } catch (err) {
+    console.error("❌ Error in createSuperAdmin:", err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
+};
+
+module.exports = { createSuperAdmin };
+
+
+
+
 
 
 module.exports = {
@@ -280,4 +350,5 @@ module.exports = {
   login,
   forgotPassword,
   resetPassword,
+  createSuperAdmin
 };

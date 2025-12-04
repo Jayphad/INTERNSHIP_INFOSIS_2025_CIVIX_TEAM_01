@@ -4,7 +4,17 @@ const pollSchema = new mongoose.Schema(
   {
     question: { type: String, required: true },
     description: { type: String },
-    location: { type: String },
+    // Manual location entered by user
+    manualLocation: {
+      type: String,
+      default: "",
+    },
+
+    // Browser detected latitude & longitude
+    browserLocation: {
+      latitude: { type: Number },
+      longitude: { type: Number },
+    },
     closesOn: { type: String },
 
     authorId: { type: String, required: true },

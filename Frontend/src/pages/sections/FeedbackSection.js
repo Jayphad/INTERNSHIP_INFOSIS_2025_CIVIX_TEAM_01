@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef,useEffect } from 'react';
 import { FormButton } from '../FormControls';
 import { UploadCloud, X } from '../../assets/icons';
 import axios from 'axios';
@@ -17,6 +17,14 @@ const FeedbackSection = ({ user }) => {
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+
+  const logActivity = (activity) => {
+  const existing = JSON.parse(localStorage.getItem("userActivity") || "[]");
+  existing.unshift(activity);
+  localStorage.setItem("userActivity", JSON.stringify(existing.slice(0, 10))); 
+  // store max 10 items
+};
+
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -67,6 +75,14 @@ const FeedbackSection = ({ user }) => {
 
     if (res.ok && data.success) {
       alert("Feedback submitted successfully!");
+
+    logActivity({
+      id: crypto.randomUUID(),
+      type: "Report Filed",
+      description: `Feedback submitted: ${ name || "Anonymous"}`,
+      time: new Date().toLocaleString(),
+    });
+
 
       // Reset all form states
       setName("");

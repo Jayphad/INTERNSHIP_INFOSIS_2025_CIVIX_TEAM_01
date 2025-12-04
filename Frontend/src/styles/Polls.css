@@ -13,6 +13,56 @@
   
 }
 
+/* map model css */
+.map-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.map-modal {
+  background: white;
+  padding: 1.2rem;
+  width: 480px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .8rem;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.confirm-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: .6rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.confirm-btn:hover {
+  background: #1d4ed8;
+}
+
+
+
+
 /* Header */
 .polls-header {
   display: flex;
@@ -59,6 +109,7 @@
 .create-btn:hover {
   background-color: #21003f;
 }
+
 
 /* Toolbar */
 .polls-toolbar {

@@ -29,7 +29,7 @@ const ReportStatCard = ({ title, value, icon: Icon, colorClass }) => (
 const PieChart = ({ data, colors }) => {
   const total = data.reduce((a, b) => a + b, 0);
 
-  // 🔥 Chrome Fix
+  
   if (!data.length || total === 0) {
     return (
       <div className="pie-chart-container">
@@ -236,9 +236,9 @@ const myPollCharts = {
     colors: ["#16a34a", "#f59e0b", "#ef4444"]
   },
   distribution: {
-    labels: [], // Currently backend doesn’t return location for My Activity
-    values: [],
-    colors: []
+   labels: reportData.polls.byLocation?.map(d => d.location) || [],
+    values: reportData.polls.byLocation?.map(d => d.count) || [],
+    colors: ["#3b82f6", "#f59e0b", "#06b6d4", "#94a3b8"] // pick 4 colors
   }
 };
 
