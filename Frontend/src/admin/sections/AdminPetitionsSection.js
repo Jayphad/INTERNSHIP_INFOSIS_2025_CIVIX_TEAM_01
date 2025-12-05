@@ -242,10 +242,10 @@ const AdminPetitionsSection = () => {
                 <div className="stat-icon-wrapper" style={{background: '#dcfce7', color: '#16a34a', marginRight:'1rem'}}><CheckCircle size={24} /></div>
                 <div><h3>{stats.active}</h3><p style={{margin:0, color:'#64748b'}}>Active</p></div>
               </div>
-              <div className="admin-stat-card">
+              {/* <div className="admin-stat-card">
                 <div className="stat-icon-wrapper" style={{background: '#fef2f2', color: '#dc2626', marginRight:'1rem'}}><AlertCircle size={24} /></div>
                 <div><h3>{stats.reported}</h3><p style={{margin:0, color:'#64748b'}}>Reported</p></div>
-              </div>
+              </div> */}
             </div>
 
             <div className="admin-controls-bar">
@@ -269,7 +269,7 @@ const AdminPetitionsSection = () => {
             <div className="admin-table-container">
                 <table className="admin-table">
                     <thead>
-                        <tr><th>Petition Details</th><th>Signatures</th><th>Status</th><th>Reports</th><th style={{textAlign:'right'}}>Actions</th></tr>
+                        <tr><th>Petition Details</th><th>Signatures</th><th>Status</th><th style={{textAlign:'right'}}>Actions</th></tr>
                     </thead>
                     <tbody>
                         {filteredPetitions.length > 0 ? filteredPetitions.map(p => {
@@ -293,7 +293,7 @@ const AdminPetitionsSection = () => {
                                   </span>
                                 </td>
                                 {/* ✅ Show 0 if reports is 0 */}
-                                <td>{p.reports > 0 ? <span className="report-badge"><AlertCircle size={12}/> {p.reports}</span> : <span className="zero-reports">0</span>}</td>
+                                {/* <td>{p.reports > 0 ? <span className="report-badge"><AlertCircle size={12}/> {p.reports}</span> : <span className="zero-reports">0</span>}</td> */}
                                 <td>
                                     <div className="admin-row-actions">
                                       {/* ✅ View Details (Eye) */}
@@ -354,10 +354,10 @@ const AdminPetitionsSection = () => {
                         </div>
                         
                         {/* Report Count in Modal */}
-                        <div className="detail-row" style={{marginTop:'1rem'}}>
+                        {/* <div className="detail-row" style={{marginTop:'1rem'}}>
                              <span className="detail-label">Reports</span>
                              <div className="detail-value">{viewPetition.reports || 0}</div>
-                        </div>
+                        </div> */}
 
                         <div className="modal-actions"><button className="primary-btn" onClick={() => setViewPetition(null)}>Close</button></div>
                     </div>

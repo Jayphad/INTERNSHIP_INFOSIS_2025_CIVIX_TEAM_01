@@ -266,6 +266,7 @@
     font-size: 0.95rem;
     transition: border-color 0.2s;
     background: #f8fafc;
+    margin: 0.25rem;
 }
 
 .admin-form-input:focus,
@@ -318,4 +319,63 @@
     border-radius: 4px;
     margin-left: 8px;
     vertical-align: middle;
+}
+
+@media (max-width: 767px) {
+    .admin-comm-section-header {
+    display: block;
+}
+}
+
+@media (max-width: 501px) {
+    .admin-comm-card {
+    padding: 10px;
+    margin: 0.5rem 0;
+    }
+
+    .btn-delete-post {
+    gap: 4px;
+    padding: 3px 6px;
+    font-size: 0.5rem;
+}
+
+.comm-meta h4 {
+    font-size: 0.67rem;
+}
+
+.comm-author-group {
+    gap: 6px;
+}
+
+.comm-meta span {
+    font-size: 0.5rem;
+}
+
+.comm-avatar {
+    width: 32px;
+    height: 32px;;
+}
+
+.comm-card-content p {
+    font-size: 0.65rem;
+}
+
+.comm-card-content h3 {
+    font-size: 0.76rem;
+}
+
+.comm-footer-stats button{
+    font-size: 0.65rem;
+}
+
+.dashboard-section-title {
+    font-size: 1.25rem;
+}
+
+.dashboard-section-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0.25rem 0 0;
+}
+
 }

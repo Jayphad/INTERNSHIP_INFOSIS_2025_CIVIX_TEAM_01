@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileText, BarChart2, Flag, Users,Bell, ArrowRight } from "../../assets/icons";
+import { FileText, BarChart2, Flag, Users,Bell, ArrowRight, MessageSquare } from "../../assets/icons";
 import StatCard from "../StatCard";
 import ContentCard from "../ContentCard";
 import { FormButton } from "../FormControls";
@@ -122,8 +122,8 @@ useEffect(() => {
   const stats = [
     { title: "Active Petitions", value: petitions.length.toString(), icon: FileText, color: "blue" },
      { title: "Active Polls", value: polls.length.toString(), icon: BarChart2, color: "green" },
-    { title: "Feedback Received", value: feedbackCount.toString(), icon: Users, color: "purple" },
-     { title: "Community Members", value: membersCount.toString(), icon: Users, color: "yellow" },
+    { title: "Feedback Received", value: feedbackCount.toString(), icon: MessageSquare, color: "red" },
+     { title: "Community Members", value: membersCount.toString(), icon: Users, color: "purple" },
   ];
 
   return (

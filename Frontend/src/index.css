@@ -31,11 +31,17 @@ label {
 }
 
 button {
-  background-color: transparent;
+  background-color: #3b034e;
   color: white;
   padding: 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: 2px;
+}
+
+@media (max-width:767px) {
+  button{
+    margin: 1px;
+  }
 }

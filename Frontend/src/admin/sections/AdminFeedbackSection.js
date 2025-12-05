@@ -116,19 +116,19 @@ const markAsRead = async (id) => {
                 </div>
             </div>
             <div className="feedback-stats-row">
-                <div className="stat-card">
+                <div className="stat-card feed-stat-card" >
                     <span className="stat-label">Total Feedback</span>
                     <span className="stat-value">{stats.total}</span>
                 </div>
-                <div className="stat-card urgent">
+                <div className="stat-card feed-stat-card urgent">
                     <span className="stat-label">Unread</span>
                     <span className="stat-value">{stats.unread}</span>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card feed-stat-card">
                     <span className="stat-label">Bug Reports</span>
                     <span className="stat-value">{stats.bugs}</span>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card feed-stat-card">
                     <span className="stat-label">Avg Rating</span>
                     <span className="stat-value">★ {stats.avgRating}</span>
                 </div>

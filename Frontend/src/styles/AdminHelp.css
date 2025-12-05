@@ -1,0 +1,150 @@
+/* src/styles/Help.css */
+
+.help-container {
+  max-width: 800px;
+  margin: 2rem 0 0 0;
+}
+
+.help-category-group {
+  margin-bottom: 2.5rem;
+}
+
+.help-category-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a; /* slate-900 */
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Accordion Styles */
+.help-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.help-accordion-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.help-accordion-item.open {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.help-accordion-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.help-question {
+  font-weight: 600;
+  color: #1e293b; /* slate-800 */
+  font-size: 1rem;
+  margin-right: 1rem;
+}
+
+.help-icon {
+  color: #64748b; /* slate-500 */
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+/* Rotate icon when open (if using X as 'close', rotating makes it + or x)
+   But here we are swapping icon components in JS, so no rotation needed.
+   If using an arrow, we would rotate it.
+*/
+
+.help-accordion-body {
+  height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+  background-color: #f8fafc; /* slate-50 */
+}
+
+.help-answer {
+  padding: 1.25rem;
+  padding-top: 0;
+  color: #475569; /* slate-600 */
+  line-height: 1.6;
+  font-size: 0.95rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0.5rem; /* visual spacing from border */
+}
+
+.help-accordion-item.open .help-answer {
+  padding-top: 1rem; /* Restore padding when open */
+}
+
+
+/* Contact Box */
+.help-contact-box {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: #e0e7ff; /* indigo-100 */
+  border: 1px solid #c7d2fe; /* indigo-200 */
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin-top: 3rem;
+}
+
+.help-contact-icon {
+  background-color: #ffffff;
+  color: #4f46e5; /* indigo-600 */
+  padding: 1rem;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.help-contact-text h4 {
+  margin: 0 0 0.25rem 0;
+  color: #312e81; /* indigo-900 */
+  font-size: 1.1rem;
+}
+
+.help-contact-text p {
+  margin: 0 0 0.5rem 0;
+  color: #4338ca; /* indigo-700 */
+  font-size: 0.95rem;
+}
+
+.help-email-link {
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: underline;
+}
+.help-email-link:hover {
+  color: #3730a3;
+}
+
+@media (max-width: 767px) {
+  .help-contact-box {
+    gap: 1rem;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+.help-contact-icon {
+    padding: 0.75rem;
+}
+
+.help-contact-text{
+  font-size: 0.75rem;
+}
+
+}

@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Added import for navigation
 import { User, Lock, Info, LogOut, Camera, Mail, MapPin, Phone, Edit2, X } from '../../assets/icons';
 import { FormButton, FormInput } from '../FormControls';
 import Modal from './Modal';
 import '../../styles/Dashboard.css';
-import '../../styles/Settings.css'; // We'll create this next
+import '../../styles/Settings.css'; 
+import { ToastContainer, toast } from 'react-toastify'; // 2. Added 'toast' import
 
 // --- SUB-COMPONENTS FOR MODALS ---
 
 const ProfileModal = ({ user, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-     name: (user && user.name) || "Your Name",
-  email: (user && user.email) || "youremail@example.com",
+    name: (user && user.name) || "Your Name",
+    email: (user && user.email) || "youremail@example.com",
     phone: "+91 xxxxx xxxxx",
     address: "123, Main Street, City, Country",
     avatar: null
@@ -19,7 +21,6 @@ const ProfileModal = ({ user, onClose }) => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    // In a real app, API call here
     setIsEditing(false);
     alert("Profile updated successfully!");
   };
@@ -132,7 +133,6 @@ const ProfileModal = ({ user, onClose }) => {
 const AboutModal = () => (
   <div className="about-modal-content">
     <div className="about-logo-section">
-      {/* You can import the logo image here if you want */}
       <h2 className="about-app-name">Civix</h2>
       <span className="about-version">Version 1.0.0 (Beta)</span>
     </div>
@@ -157,12 +157,10 @@ const AboutModal = () => (
 
 // --- MAIN SETTINGS COMPONENT ---
 
-const SettingsSection = ({ user, onSignOut }) => {
-  // 'profile', 'password', 'about', or null
+const SettingsSection = ({ user, onLogOut }) => {
   const [activeModal, setActiveModal] = useState(null);
+  const navigate = useNavigate(); // 3. Initialize hook
   
-  // Re-using the NewPassword component from auth but wrapping it for modal use
-  // We need to import it specifically or just recreate a simple form here for simplicity inside the dashboard context
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   
@@ -175,6 +173,15 @@ const SettingsSection = ({ user, onSignOut }) => {
     setConfirmPass('');
   };
 
+  const handleLogout = (e) => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('loggedInUser');
+    toast.success('Logged Out Successfully'); // 4. Fixed function call
+    setTimeout(() => {
+      navigate('/login');
+    }, 1000);
+  }
+
   return (
     <div className="dashboard-section-placeholder">
       <div className="dashboard-section-header">
@@ -182,6 +189,7 @@ const SettingsSection = ({ user, onSignOut }) => {
       </div>
       <p className="dashboard-section-subtitle">Manage your account and preferences.</p>
 
+      {/* START of Settings List */}
       <div className="settings-list">
         
         {/* My Profile */}
@@ -218,8 +226,8 @@ const SettingsSection = ({ user, onSignOut }) => {
         </div>
 
         {/* Logout */}
-        <div className="settings-item settings-logout" onClick={onSignOut}>
-          <div className="settings-icon-wrapper icon-red">
+        <div className="settings-item settings-logout" onClick={handleLogout}>
+          <div className="settings-icon-wrapper icon-red" >
             <LogOut size={24} />
           </div>
           <div className="settings-info">
@@ -228,7 +236,11 @@ const SettingsSection = ({ user, onSignOut }) => {
           </div>
         </div>
 
-      </div>
+      </div> 
+      {/* 5. THIS WAS MISSING: Closing div for settings-list */}
+
+      {/* Toast moved outside the logout button to prevent nesting issues */}
+      <ToastContainer />
 
       {/* --- MODALS --- */}
       

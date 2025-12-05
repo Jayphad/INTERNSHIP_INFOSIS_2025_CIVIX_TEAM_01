@@ -97,7 +97,7 @@ const CreatePostForm = ({ onCancel, onPost }) => {
 
   return (
     <form onSubmit={handleSubmit} className="petition-create-form petition-modal-form">
-      <div className="form-field-group">
+      <div className="form-group">
         <label>Title</label>
         <input
           type="text"
@@ -108,7 +108,7 @@ const CreatePostForm = ({ onCancel, onPost }) => {
         />
       </div>
 
-      <div className="form-field-group">
+      <div className="form-group">
         <label>Category</label>
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option>General</option>
@@ -118,7 +118,7 @@ const CreatePostForm = ({ onCancel, onPost }) => {
         </select>
       </div>
 
-      <div className="form-field-group">
+      <div className="form-group">
         <label>Content</label>
         <textarea
           rows="4"

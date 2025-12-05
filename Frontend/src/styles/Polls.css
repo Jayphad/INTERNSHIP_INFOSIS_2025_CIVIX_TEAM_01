@@ -8,60 +8,10 @@
 
 .polls-container {
   padding: 1.5rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;  
   
 }
-
-/* map model css */
-.map-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.map-modal {
-  background: white;
-  padding: 1.2rem;
-  width: 480px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.map-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: .8rem;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.confirm-btn {
-  width: 100%;
-  margin-top: 1rem;
-  padding: .6rem;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.confirm-btn:hover {
-  background: #1d4ed8;
-}
-
-
-
 
 /* Header */
 .polls-header {
@@ -98,18 +48,17 @@
   border-radius: 0.5rem;
   font-weight: 600;
   cursor: pointer;
-  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
   transition: background 0.2s;
+  margin: 0 !important;
 }
 
 .create-btn:hover {
   background-color: #21003f;
 }
-
 
 /* Toolbar */
 .polls-toolbar {
@@ -147,14 +96,14 @@
 }
 
 .tab-btn.active {
-  background: white;
-  color: #0f172a;
+  background: #3b034e;
+  color: #f3f3f3;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .location-filter {
   position: relative;
-  min-width: 220px;
+  /* min-width: 220px; */
 }
 
 .location-select {
@@ -495,7 +444,6 @@
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   font-size: 0.95rem;
-  background-color: #f3f3f3;
   transition: border-color 0.2s;
 }
 
@@ -546,9 +494,6 @@
   padding: 0.6rem;
   border-radius: 0.5rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: 600;
 }
 
@@ -559,7 +504,8 @@
   padding: 1rem;
   display: flex;
   gap: 0.75rem;
-  margin: 1rem 0;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
 
 .info-icon {
@@ -614,4 +560,117 @@
   text-align: center;
   padding: 3rem;
   color: #94a3b8;
+}
+
+/* -------------------------------------
+   POLLS HEADER RESPONSIVENESS
+------------------------------------- */
+@media (max-width: 767px) {
+  .polls-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .create-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .create-btn {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.9rem;
+  }
+}
+
+/* ----------------------------------------------------
+   (ONLY MOBILES — below 768px)
+---------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .polls-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    overflow-x: auto !important;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding-bottom: 0.4rem;
+  }
+
+
+  .polls-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .poll-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    width: max-content !important;
+  }
+
+  .tab-btn {
+    white-space: nowrap !important;
+    font-size: 0.56rem;
+    padding: inherit;
+}
+
+.location-select {
+    font-size: .56rem;
+  }
+  }
+
+  .location-filter {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .location-select {
+    width: auto !important;
+    min-width: max-content !important;
+    white-space: nowrap !important;
+  }
+
+  .polls-container {
+  padding: 0;  
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    display: block; 
+}
+
+  .polls-toolbar {
+    overflow-x: unset;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .poll-tabs {
+    gap: 0;
+  }
 }
