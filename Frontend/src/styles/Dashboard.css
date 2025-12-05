@@ -26,6 +26,9 @@ body {
   overflow-x: hidden;
 }
 
+.dashboard-header-right button{
+  background: transparent;
+}
 /* ===== Sidebar ===== */
 .sidebar-container {
   width: 250px;
