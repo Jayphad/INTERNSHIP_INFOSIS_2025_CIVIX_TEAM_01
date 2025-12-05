@@ -33,7 +33,7 @@ const DashboardHeader = ({ user, heading, toggleSidebar }) => {
       </button>
 
       <div className="dashboard-header-right">
-        <Bell className="header-icon" />
+        {/* <Bell className="header-icon" /> */}
         <div className="header-user">
           <div className="header-avatar">{loggedInUser[0] || "G"}</div>
           <span>{loggedInUser || "Guest User"}</span>

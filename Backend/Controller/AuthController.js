@@ -337,8 +337,53 @@ const createSuperAdmin = async (req, res) => {
   }
 };
 
-module.exports = { createSuperAdmin };
+// module.exports = { createSuperAdmin };
 
+// Update password from settings
+const updatePassword = async (req, res) => {
+  try {
+    console.log("updatePassword called:", req.method, req.path, req.body);
+
+    const { id, newPassword } = req.body; // <-- changed from email to id
+    if (!id || !newPassword) {
+      return res.status(400).json({ success: false, message: "Missing user id or newPassword" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const updated = await UserModel.updateOne({ _id: id }, { $set: { password: hashedPassword } });
+    if (updated.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, message: "Password updated successfully" });
+  } catch (err) {
+    console.error("updatePassword error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.body.id;
+    if (!userId) return res.status(400).json({ success: false, message: "User ID missing" });
+
+    // Only update editable fields
+    const updateData = {
+      name: req.body.name
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: "Profile updated", user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 
 
@@ -350,5 +395,7 @@ module.exports = {
   login,
   forgotPassword,
   resetPassword,
-  createSuperAdmin
+  createSuperAdmin,
+  updatePassword,
+  updateProfile
 };

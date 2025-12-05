@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendOTP, verifyOTP, login,forgotPassword, resetPassword,createSuperAdmin } = require('../Controller/AuthController');
+const { sendOTP, verifyOTP, login,forgotPassword, resetPassword,createSuperAdmin, updatePassword,updateProfile } = require('../Controller/AuthController');
 const { signupValidation, loginValidation } = require('../Middleware/validation');
 const UserModel = require('../Models/user');
 
@@ -27,6 +27,15 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// api for udate password
+router.post("/updatepassword", updatePassword);
+
+
+// POST  to update user profile
+router.post('/updateProfile',  updateProfile);
+
+
 
 //route for creating super admin
 router.post("/create-super-admin", createSuperAdmin);

@@ -9,126 +9,96 @@ import { ToastContainer, toast } from 'react-toastify'; // 2. Added 'toast' impo
 
 // --- SUB-COMPONENTS FOR MODALS ---
 
-const ProfileModal = ({ user, onClose }) => {
+const ProfileModal = ({ onClose }) => {
+  const user=JSON.parse(localStorage.getItem("user")) ;
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: (user && user.name) || "Your Name",
-    email: (user && user.email) || "youremail@example.com",
-    phone: "+91 xxxxx xxxxx",
-    address: "123, Main Street, City, Country",
-    avatar: null
-  });
+  const [name, setName] = useState(user?.name || "Your Name");
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setIsEditing(false);
-    alert("Profile updated successfully!");
-  };
+  const handleSave = async () => {
+    if (!name) return toast.error("Name cannot be empty");
+    
+    try {
+      const userId =localStorage.getItem("id");
+      if (!userId) return toast.error("User ID not found.");
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileData({ ...profileData, avatar: URL.createObjectURL(file) });
+      const response = await fetch("http://localhost:8080/updateProfile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: userId, name }) // send only updated name
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Profile updated successfully!");
+        const updatedUser = { ...user, name };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        onClose && onClose(updatedUser);
+      } else {
+        toast.error(result.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error — could not update profile.");
     }
-  };
-
-  const removeAvatar = () => {
-    setProfileData({ ...profileData, avatar: null });
+    setIsEditing(false);
   };
 
   return (
     <div className="profile-modal-content">
       <div className="profile-header">
+        {/* Avatar */}
         <div className="profile-avatar-large">
-          {profileData.avatar ? (
-            <img src={profileData.avatar} alt="Profile" />
-          ) : (
-            <div className="avatar-placeholder">{profileData.name.charAt(0)}</div>
-          )}
-          {isEditing && (
-            <div className="avatar-overlay">
-               <label htmlFor="avatar-upload" className="avatar-upload-btn">
-                 <Camera size={20} />
-               </label>
-               <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} hidden />
-               {profileData.avatar && (
-                 <button className="avatar-remove-btn" onClick={removeAvatar} title="Remove photo">
-                   <X size={16} />
-                 </button>
-               )}
-            </div>
-          )}
+          <div className="avatar-placeholder">{name.charAt(0).toUpperCase()}</div>
         </div>
+
+        {/* Role and Name */}
         <div className="profile-title">
-          <h3>{profileData.name}</h3>
-          <p>Citizen / Resident</p>
+          <p className="profile-role">{user?.role === "official" ? "Official" : "Citizen"}</p>
+          {!isEditing ? (
+            <h3>{name}</h3>
+          ) : (
+            <input
+              className="profile-name-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          )}
         </div>
+
         {!isEditing && (
           <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>
-            <Edit2 size={16} /> Edit Profile
+            <Edit2 size={16} /> Edit Name
           </button>
         )}
       </div>
 
-      {isEditing ? (
-        <form onSubmit={handleSave} className="profile-form">
-          <FormInput 
-            label="Full Name" 
-            value={profileData.name} 
-            onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-          />
-          <FormInput 
-            label="Email" 
-            value={profileData.email} 
-            onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-          />
-          <FormInput 
-            label="Phone Number" 
-            value={profileData.phone} 
-            onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-          />
-          <div className="form-field-group">
-             <label>Address</label>
-             <textarea 
-                className="form-input" 
-                rows="3"
-                value={profileData.address}
-                onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-             />
+      {/* Email */}
+      <div className="profile-details-view">
+        <div className="detail-row">
+          <Mail size={18} />
+          <div>
+            <span className="detail-label">Email</span>
+            <p className="detail-value">{user?.email}</p>
           </div>
-          <div className="form-action-buttons">
-            <FormButton type="button" variant="secondary" onClick={() => setIsEditing(false)}>Cancel</FormButton>
-            <FormButton type="submit" variant="primary">Save Changes</FormButton>
-          </div>
-        </form>
-      ) : (
-        <div className="profile-details-view">
-          <div className="detail-row">
-            <Mail size={18} />
-            <div>
-              <span className="detail-label">Email</span>
-              <p className="detail-value">{profileData.email}</p>
-            </div>
-          </div>
-          <div className="detail-row">
-            <Phone size={18} />
-            <div>
-              <span className="detail-label">Phone</span>
-              <p className="detail-value">{profileData.phone}</p>
-            </div>
-          </div>
-          <div className="detail-row">
-            <MapPin size={18} />
-            <div>
-              <span className="detail-label">Address</span>
-              <p className="detail-value">{profileData.address}</p>
-            </div>
-          </div>
+        </div>
+      </div>
+
+      {/* Save/Cancel Buttons */}
+      {isEditing && (
+        <div className="form-action-buttons">
+          <FormButton type="button" variant="secondary" onClick={() => setIsEditing(false)}>
+            Cancel
+          </FormButton>
+          <FormButton type="button" variant="primary" onClick={handleSave}>
+            Save Changes
+          </FormButton>
         </div>
       )}
     </div>
   );
 };
+
 
 const AboutModal = () => (
   <div className="about-modal-content">
@@ -164,14 +134,67 @@ const SettingsSection = ({ user, onLogOut }) => {
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   
-  const handleChangePassword = (e) => {
-    e.preventDefault();
-    if(newPass !== confirmPass) { alert("Passwords do not match"); return; }
-    alert("Password updated successfully!");
-    setActiveModal(null);
-    setNewPass('');
-    setConfirmPass('');
-  };
+  const handleChangePassword = async (e) => {
+  e.preventDefault();
+
+  if (!newPass || !confirmPass) {
+    toast.error("Please fill all fields");
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    toast.error("Passwords do not match");
+    return;
+  }
+
+  try {
+    // Get user id directly from localStorage
+    const userId = localStorage.getItem("id");
+    if (!userId) {
+      toast.error("User id not found. Please login again.");
+      return;
+    }
+
+    const payload = { id: userId, newPassword: newPass };
+    console.log("→ sending updatepassword request:", payload);
+
+    const response = await fetch("http://localhost:8080/auth/updatepassword", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    console.log("← HTTP status:", response.status, response.statusText);
+
+    let result = null;
+    try {
+      result = await response.json();
+      console.log("← response json:", result);
+    } catch (jsonErr) {
+      console.warn("Could not parse JSON response:", jsonErr);
+    }
+
+    if (!response.ok) {
+      const msg = (result && (result.message || result.error)) || `Server returned ${response.status}`;
+      toast.error(msg);
+      return;
+    }
+
+    // Success
+    if (result?.success) {
+      toast.success(result.message || "Password changed successfully!");
+      setActiveModal(null);
+      setNewPass("");
+      setConfirmPass("");
+    } else {
+      toast.error(result?.message || "Failed to update password");
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+    toast.error("Network error — could not reach server. Check console.");
+  }
+};
+
 
   const handleLogout = (e) => {
     localStorage.removeItem('token');
@@ -245,41 +268,54 @@ const SettingsSection = ({ user, onLogOut }) => {
       {/* --- MODALS --- */}
       
       {/* Profile Modal */}
-      <Modal 
-        isOpen={activeModal === 'profile'} 
-        onClose={() => setActiveModal(null)}
-        title="My Profile"
-      >
-        <ProfileModal user={user} onClose={() => setActiveModal(null)} />
-      </Modal>
+<Modal 
+  isOpen={activeModal === 'profile'} 
+  onClose={() => setActiveModal(null)}
+  title="My Profile"
+>
+  <ProfileModal 
+   
+    onClose={(updatedUser) => {
+      setActiveModal(null);
+      // Optional: update parent state to reflect changes in dashboard
+      // setUser(updatedUser);
+    }} 
+  />
+</Modal>
+
+
 
       {/* Change Password Modal */}
-      <Modal 
-        isOpen={activeModal === 'password'} 
-        onClose={() => setActiveModal(null)}
-        title="Change Password"
-      >
-        <form onSubmit={handleChangePassword} className="petition-create-form petition-modal-form">
-           <FormInput 
-              id="new-pass" 
-              type="password" 
-              label="New Password" 
-              value={newPass} 
-              onChange={(e)=>setNewPass(e.target.value)} 
-           />
-           <FormInput 
-              id="conf-pass" 
-              type="password" 
-              label="Confirm Password" 
-              value={confirmPass} 
-              onChange={(e)=>setConfirmPass(e.target.value)} 
-           />
-           <div className="form-action-buttons">
-              <FormButton type="button" variant="secondary" onClick={() => setActiveModal(null)}>Cancel</FormButton>
-              <FormButton type="submit" variant="primary">Update Password</FormButton>
-           </div>
-        </form>
-      </Modal>
+    <Modal 
+  isOpen={activeModal === 'password'} 
+  onClose={() => setActiveModal(null)}
+  title="Change Password"
+>
+  <form onSubmit={handleChangePassword} className="petition-create-form petition-modal-form">
+    <FormInput 
+      id="new-pass"
+      type="password"
+      label="New Password"
+      placeholder="Enter new password"
+      value={newPass}
+      onChange={(e)=>setNewPass(e.target.value)}
+    />
+
+    <FormInput 
+      id="conf-pass"
+      type="password"
+      label="Confirm New Password"
+      placeholder="Re-enter new password"
+      value={confirmPass}
+      onChange={(e)=>setConfirmPass(e.target.value)}
+/>
+
+     <div className="form-action-buttons">
+        <FormButton type="button" variant="secondary" onClick={() => setActiveModal(null)}>Cancel</FormButton>
+        <FormButton type="submit" variant="primary">Update Password</FormButton>
+     </div>
+  </form>
+</Modal>
 
       {/* About Modal */}
       <Modal 

@@ -122,7 +122,7 @@ useEffect(() => {
   const stats = [
     { title: "Active Petitions", value: petitions.length.toString(), icon: FileText, color: "blue" },
      { title: "Active Polls", value: polls.length.toString(), icon: BarChart2, color: "green" },
-    { title: "Feedback Received", value: feedbackCount.toString(), icon: MessageSquare, color: "red" },
+    { title: "Feedback ", value: feedbackCount.toString(), icon: MessageSquare, color: "red" },
      { title: "Community Members", value: membersCount.toString(), icon: Users, color: "purple" },
   ];
 
@@ -188,7 +188,7 @@ useEffect(() => {
                         ></div>
                       </div>
                     </div>
-                    <button className="petition-list-item-button">View / Sign</button>
+                    <button className="petition-list-item-button " onClick={() => setCurrentSection("petitions")}>View / Sign</button>
                   </li>
                 ))
               ) : (
@@ -230,7 +230,7 @@ useEffect(() => {
                 ></div>
               </div>
             </div>
-            <button className="petition-list-item-button">View / Vote</button>
+            <button className="petition-list-item-button" onClick={() => setCurrentSection("polls")}>View / Vote</button>
           </li>
         ))
       ) : (
