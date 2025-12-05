@@ -536,7 +536,7 @@
 }
 
 .modal {
-  width: 95% !important;
+  /* width: 95% !important; */
   padding: 1.25rem;
   max-height: 88vh;
 }
