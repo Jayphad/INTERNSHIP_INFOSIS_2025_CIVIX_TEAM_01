@@ -76,9 +76,10 @@
 
 /* Star Rating */
 .feedback-rating-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 0.25rem;
 }
 
 .feedback-rating-star {
