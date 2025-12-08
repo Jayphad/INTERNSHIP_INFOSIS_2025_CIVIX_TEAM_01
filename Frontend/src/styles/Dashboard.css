@@ -25,6 +25,9 @@ body {
   position: relative;
   overflow-x: hidden;
 }
+.dashboard-header-right button{
+  background-color: transparent;
+}
 
 /* ===== Sidebar ===== */
 .sidebar-container {
@@ -486,6 +489,70 @@ DashBOard HomePage
     font-size: 24px;
     cursor: pointer;
  }
+
+ /* Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* Modal Box */
+.modal-box {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 10px;
+  width: 350px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  animation: popup 0.25s ease;
+}
+
+@keyframes popup {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Buttons */
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.yes-btn {
+  background: #e74c3c;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.no-btn {
+  background: #3498db;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.yes-btn:hover {
+  background: #c0392b;
+}
+
+.no-btn:hover {
+  background: #2980b9;
+}
+
 /* Adjust layout when sidebar is closed (mobile view) */
 @media (max-width: 1024px) {
   .dashboard-header {

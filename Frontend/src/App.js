@@ -46,7 +46,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
 
-        {/* Citizen Routes */}
+        {/* Citizen Routes */}X
         <Route 
           path="/dashboard" 
           element={<PrivateRoute element={<Dashboard />} allowedRoles={['citizen']} />} 

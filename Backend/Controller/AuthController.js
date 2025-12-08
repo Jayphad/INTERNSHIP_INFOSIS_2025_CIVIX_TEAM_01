@@ -372,7 +372,7 @@ const updateProfile = async (req, res) => {
       name: req.body.name
     };
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, updateData, { new: true });
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });

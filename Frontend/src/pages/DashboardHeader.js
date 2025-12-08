@@ -7,9 +7,12 @@ import { handleSuccess } from '../utils';
 import {ToastContainer } from 'react-toastify';
 
 
+
 const DashboardHeader = ({ user, heading, toggleSidebar }) => {
   const[loggedInUser,setLoggedInUser] = useState('');
     const navigate =useNavigate();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   
       useEffect(() => {
         setLoggedInUser(localStorage.getItem('loggedInUser'));
@@ -19,12 +22,14 @@ const DashboardHeader = ({ user, heading, toggleSidebar }) => {
             localStorage.removeItem('loggedInUser');
             handleSuccess('Logged Out Successfully');
              setTimeout(() => {
-              navigate('/login');
+              navigate('/');
       
              },1000);
           }
   return (
-    <header className="dashboard-header">
+   
+    <>
+ <header className="dashboard-header">
       <button onClick={toggleSidebar} className="sidebar-toggle-btn" style={{display:"flex",alignItems:"center",gap:"15px", marginLeft:"30px"}}>
        <p className="menu-icon">
          ☰
@@ -40,11 +45,42 @@ const DashboardHeader = ({ user, heading, toggleSidebar }) => {
           
         </div>
         <div>
-      <button onClick={handleLogout}><LogOut/></button>
+     <button onClick={() => setShowLogoutModal(true)}>
+        <LogOut />
+      </button>
+
       <ToastContainer />
     </div>
-      </div>
+    </div>
     </header>
+    {showLogoutModal && (
+  <div className="modal-overlay">
+    <div className="modal-box">
+      <h3>Are you sure you want to logout?</h3>
+
+      <div className="modal-actions">
+        <button 
+          className="yes-btn"
+          onClick={() => {
+            setShowLogoutModal(false);
+            handleLogout();
+          }}
+        >
+          Yes
+        </button>
+
+        <button 
+          className="no-btn"
+          onClick={() => setShowLogoutModal(false)}
+        >
+          No
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+    </>
   );
 };
 

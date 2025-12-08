@@ -11,9 +11,37 @@ const images = [
   "https://cdn.dnaindia.com/sites/default/files/styles/full/public/2018/12/26/769943-potholes-122618.jpg",
 ];
 
+
 const LandingPage = () => {
   const [current, setCurrent] = useState(0);
    const navigate = useNavigate();
+
+   const [feedback, setFeedbackList] = useState([]);
+
+useEffect(() => {
+  const fetchFeedback = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/feedback/all");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.feedbacks)) {
+        const sortedFeedback = data.feedbacks.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setFeedbackList(sortedFeedback);        // full
+        // setFeedbackCount(sortedFeedback.length); // count only
+      } else {
+        console.warn("Unexpected feedback response:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching feedback:", err);
+    }
+  };
+
+  fetchFeedback();
+}, []);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -79,24 +107,40 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Insights Section */}
-      <section  className="insights" >
-        <h2>Recent Insights</h2>
-        <div className="insight-cards">
-          <div className="insight-card">
-            <h4>Smart Waste Management</h4>
-            <p>Automated tracking reduces overflow and improves hygiene.</p>
+     {/* Recent Feedback Section */}
+<section className="recent-feedback">
+  <h2>Recent Feedback</h2>
+
+  {feedback.length === 0 ? (
+    <p className="no-feedback">No feedback yet. Be the first!</p>
+  ) : (
+    <div className="feedback-cards">
+      {feedback.slice(0, 3).map((fb, index) => (
+        <div className="feedback-card" key={index}>
+          
+          {/* Avatar */}
+          {/* <div className="avatar">
+            {fb.name?.charAt(0)?.toUpperCase() || "U"}
+          </div> */}
+
+          <div className="feedback-content">
+            <h4>{fb.name}</h4>
+            <p className="message">“{fb.message}”</p>
+
+            {/* Rating Stars */}
+            <div className="stars">
+              {"★".repeat(fb.rating)}{"☆".repeat(5 - fb.rating)}
+            </div>
+
+            <p className="date">{new Date(fb.createdAt).toDateString()}</p>
           </div>
-          <div className="insight-card">
-            <h4>Citizen Feedback Portal</h4>
-            <p>Feedback analysis drives continuous improvement.</p>
-          </div>
-          <div className="insight-card">
-            <h4>Community Alerts</h4>
-            <p>Real-time notifications for emergencies and events.</p>
-          </div>
+
         </div>
-      </section>
+      ))}
+    </div>
+  )}
+</section>
+
 
 {/* Contact Section */}
 <section id="contact" className="contact-section">

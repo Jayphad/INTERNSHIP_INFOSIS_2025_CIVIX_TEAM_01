@@ -12,7 +12,7 @@ import { ToastContainer, toast } from 'react-toastify'; // 2. Added 'toast' impo
 const ProfileModal = ({ onClose }) => {
   const user=JSON.parse(localStorage.getItem("user")) ;
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.name || "Your Name");
+  const [name, setName] = useState(user?.name );
 
   const handleSave = async () => {
     if (!name) return toast.error("Name cannot be empty");
@@ -21,7 +21,7 @@ const ProfileModal = ({ onClose }) => {
       const userId =localStorage.getItem("id");
       if (!userId) return toast.error("User ID not found.");
 
-      const response = await fetch("http://localhost:8080/updateProfile", {
+      const response = await fetch("http://localhost:8080/auth/updateProfile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: userId, name }) // send only updated name

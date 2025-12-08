@@ -149,7 +149,7 @@ html, body, .landing-page {
 .services {
   padding: 80px 20px;
   text-align: center;
-  background: #111;
+  background: linear-gradient(90deg, #0c0c0c, #1a0033);
 }
 
 .services h2 {
@@ -316,4 +316,91 @@ html, body, .landing-page {
      overflow-y: auto; 
      scroll-behavior: smooth; 
     
+}
+
+/* ---- Recent Feedback ---- */
+.recent-feedback {
+  padding: 60px 20px;
+  background: linear-gradient(90deg, #0c0c0c, #1a0033);
+  text-align: center;
+}
+
+.recent-feedback h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.feedback-cards {
+  display: flex;
+  place-content: center;
+  flex-wrap: nowrap;       /* 🔥 prevents cards from going to next line */
+  overflow-x: auto;        /* 🔥 enables horizontal scroll */
+  overflow-y: hidden;
+  gap: 20px;
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #6a00ff transparent;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on mobile */
+}
+
+/* Optional: Webkit scroll styling */
+.feedback-cards::-webkit-scrollbar {
+  height: 8px;
+}
+
+.feedback-cards::-webkit-scrollbar-thumb {
+  background: #6a00ff;
+  border-radius: 10px;
+}
+
+.feedback-card {
+  flex: 0 0 auto;   
+        /* 🔥 important! card stays fixed width */
+  width: 260px;
+  text-align: left;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 0 10px rgba(143, 0, 255, 0.2);
+  transition: 0.3s ease;
+}
+
+
+/* .avatar {
+  width: 50px;
+  height: 50px;
+  background: #007bff;
+  color: white;
+  font-size: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.feedback-content h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.message {
+  margin: 5px 0;
+  font-size: 15px;
+  color: #555;
+}
+
+.stars {
+  font-size: 18px;
+  color: gold;
+}
+
+.date {
+  font-size: 12px;
+  color: #777;
+}
+
+.no-feedback {
+  font-size: 16px;
+  color: #555;
+  margin-top: 20px;
 }

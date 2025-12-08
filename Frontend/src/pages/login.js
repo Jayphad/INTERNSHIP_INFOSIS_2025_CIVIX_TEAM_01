@@ -44,6 +44,7 @@ function Login() {
           role,
           id,
           token,
+          email,
           isSuperAdmin: result.isSuperAdmin // must come from backend
         };
         localStorage.setItem("user", JSON.stringify(userObj));

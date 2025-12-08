@@ -13,7 +13,7 @@ function RefreshHandler({ setIsAuthenticated }) {
       setIsAuthenticated(true);
 
       // Only auto-redirect if user is on public routes
-      if (['/', '/login', '/signup', '/forgotpassword'].includes(location.pathname)) {
+      if (['/login', '/signup', '/forgotpassword'].includes(location.pathname)) {
         if (role === 'official' ) {
           navigate('/admin', { replace: true });
         } else {

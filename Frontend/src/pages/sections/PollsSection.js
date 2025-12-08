@@ -536,7 +536,7 @@ const handleCreateOrUpdate = async (e) => {
             {/* <ChevronDown size={16} className="chevron-icon" /> */}
             <select className="location-select" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
               <option>All Locations</option>
-              {allLocations.map(l => <option key={l} value={l}>{l}</option>)}
+              {allLocations.map(l => <option key={l} value={l}>{l.slice(0,50)}</option>)}
             </select>
           </div>
         </div>
