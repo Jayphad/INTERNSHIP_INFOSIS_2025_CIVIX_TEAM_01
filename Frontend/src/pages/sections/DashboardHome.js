@@ -283,31 +283,33 @@ useEffect(() => {
         
         {/* Activity Feed + Quick Actions */}
         <div className="main-content-col-right">
-          <ContentCard 
-            title="Your Recent Activity" 
-            icon={Bell}
-            // actions={<button className="view-all-button">View All</button>}
-          >
-            <ul className="activity-list">
-              {recentActivities.length > 0 ? (
-                recentActivities.map((activity) => (
-                  <li key={activity.id} className="activity-list-item">
-                    <div className="activity-icon-wrapper">
-                      {activity.type === "Petition Signed" && <FileText className="activity-icon activity-icon-blue" />}
-                      {activity.type === "Poll Voted" && <BarChart2 className="activity-icon activity-icon-green" />}
-                      {activity.type === "Report Filed" && <Flag className="activity-icon activity-icon-red" />}
-                    </div>
-                    <div>
-                      <p className="activity-description">{activity.description}</p>
-                      <p className="activity-time">{activity.time}</p>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <p className="activity-empty-text">No recent activity.</p>
-              )}
-            </ul>
-          </ContentCard>
+          <div className="recent-activity-list">
+            <ContentCard 
+              title="Your Recent Activity" 
+              icon={Bell}
+              // actions={<button className="view-all-button">View All</button>}
+            >
+              <ul className="activity-list">
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity) => (
+                    <li key={activity.id} className="activity-list-item">
+                      <div className="activity-icon-wrapper">
+                        {activity.type === "Petition Signed" && <FileText className="activity-icon activity-icon-blue" />}
+                        {activity.type === "Poll Voted" && <BarChart2 className="activity-icon activity-icon-green" />}
+                        {activity.type === "Report Filed" && <MessageSquare className="activity-icon activity-icon-red" />}
+                      </div>
+                      <div>
+                        <p className="activity-description">{activity.description}</p>
+                        <p className="activity-time">{activity.time}</p>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <p className="activity-empty-text">No recent activity.</p>
+                )}
+              </ul>
+            </ContentCard>
+          </div>
         
               {/* ✅ Quick Actions */}
               <div className="main-content-col-right">

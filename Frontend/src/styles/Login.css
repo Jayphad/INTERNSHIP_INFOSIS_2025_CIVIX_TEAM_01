@@ -161,7 +161,7 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-height: auto;
+    /* min-height: auto; */
     padding: 1.5rem;
     max-width: 100%; /* allow full width on mobile */
   }

@@ -246,6 +246,12 @@ DashBOard HomePage
   z-index: 1;
 }
 
+.recent-activity-list {
+  max-height: 270px; 
+  overflow-y: auto;
+  border-radius: 10px;
+}
+
 .content-card-header {
   display: flex;
   align-items: center;
